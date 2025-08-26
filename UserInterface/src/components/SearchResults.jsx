@@ -12,7 +12,8 @@ function SearchResults() {
       try {
         setLoading(true);
         // const res = await axios.get(`/api/v1/account/search?q=${query}`);
-         const res = await axios.get(`http://localhost:5000/api/v1/account/search?q=${query}`);
+        //  const res = await axios.get(`http://localhost:5000/api/v1/account/search?q=${query}`);
+         const res = await axios.get(` https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/search?q=${query}`);
          console.log(res)
         // setVideos(res.data.videos || []);
         setVideos(res.data || []);

@@ -510,8 +510,11 @@ var authStatus2;
     if (!data || !data._id) return;
     const fetchUser = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:5000/api/v1/account/userData/${data._id}`
+        // const response = await axios.get(
+        //   `http://localhost:5000/api/v1/account/userData/${data._id}`
+        // );
+         const response = await axios.get(
+          `https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/userData/${data._id}`
         );
         setUserData(response.data.data);
       } catch (error) {
