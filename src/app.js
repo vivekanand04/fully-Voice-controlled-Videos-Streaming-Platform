@@ -11,7 +11,7 @@ const app = express()
 // }))
 
 app.use(cors({
-  origin: ["http://localhost:5173", https://vercel.com/vivekanand-kumars-projects/voice-controll-youtube-frontend,
+  origin: ["http://localhost:5173", https://vercel.com/vivekanand-kumars-projects/voice-controll-youtube-frontend],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
