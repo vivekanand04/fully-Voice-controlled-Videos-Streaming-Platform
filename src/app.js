@@ -5,10 +5,7 @@ import bodyParser from "body-parser"
 
 const app = express()
 
-// app.use(cors({
-//     origin: process.env.CORS_ORIGIN.trim(),
-//     credentials: true
-// }))
+
 
 app.use(cors({
   origin: ["https://voice-controll-youtube-frontend.vercel.app/"],
