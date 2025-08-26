@@ -7,11 +7,36 @@ const app = express()
 
 
 
+// app.use(cors({
+//   origin: [ "http://localhost:5173", "https://voice-controll-youtube-frontend.vercel.app","https://voice-controll-youtube-frontend.onrender.com"],
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+//   credentials: true
+// }));
+
 app.use(cors({
-  origin: ["https://voice-controll-youtube-frontend.vercel.app/"],
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+
+    const allowed = [
+      "http://localhost:5173",
+      "https://voice-controll-youtube-frontend.vercel.app"
+    ];
+
+    // ✅ allow all vercel preview deployments
+    if (origin.endsWith(".vercel.app")) {
+      return callback(null, true);
+    }
+
+    if (allowed.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("Not allowed by CORS"));
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // ✅ include methods
   credentials: true
 }));
+
 
 
 // app.use(bodyParser.json())
