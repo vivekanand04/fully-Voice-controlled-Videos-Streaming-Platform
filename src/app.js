@@ -11,7 +11,7 @@ const app = express()
 // }))
 
 app.use(cors({
-  origin: ["https://voice-controll-youtube-frontend.vercel.app/"],
+  origin: [ "http://localhost:5173", "https://voice-controll-youtube-frontend.vercel.app/"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
