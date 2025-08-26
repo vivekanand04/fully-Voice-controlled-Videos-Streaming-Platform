@@ -16,7 +16,7 @@ function YourChannel() {
       if (data._id) {
           const fetchUser = async () => {
               try {
-                  const response = await axios.get(`/api/v1/account/userData/${data._id}`);
+                  const response = await axios.get(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/userData/${data._id}`);
                   setUserData(response.data.data);
                 } catch (error) {
                     console.error('Error fetching user data:', error);

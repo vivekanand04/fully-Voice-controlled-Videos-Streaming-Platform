@@ -1357,7 +1357,7 @@ function Video() {
   useEffect(() => {
     const fetchVideoData = async () => {
       try {
-        const res = await axios.get(`/api/v1/videos/videoData/${id}`, { withCredentials: true });
+        const res = await axios.get(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/videos/videoData/${id}`, { withCredentials: true });
         setVideoData(res.data.data);
         setVideoLikes(res.data.data.likes?.length || 0);
       } catch (err) {
@@ -1371,14 +1371,14 @@ function Video() {
 
   // === Increment view + add to history ===
   useEffect(() => {
-    axios.put(`/api/v1/videos/incrementView/${id}`).catch(console.error);
-    axios.put(`/api/v1/account/addToHistory/${id}`).catch(console.error);
+    axios.put(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/videos/incrementView/${id}`).catch(console.error);
+    axios.put(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/addToHistory/${id}`).catch(console.error);
   }, [id]);
 
   // === Fetch uploader data ===
   useEffect(() => {
     if (videoData?.owner) {
-      axios.get(`/api/v1/account/userData/${videoData.owner}`)
+      axios.get(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/userData/${videoData.owner}`)
         .then(res => setUserData(res.data.data))
         .catch(console.error);
     }
@@ -1387,7 +1387,7 @@ function Video() {
   // === Fetch comments ===
   useEffect(() => {
     axios
-      .get(`/api/v1/messages/video/${id}`, { withCredentials: true })
+      .get(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/messages/video/${id}`, { withCredentials: true })
       .then(res => setMessages(res.data.messages || []))
       .catch(console.error);
   }, [id]);
@@ -1395,7 +1395,7 @@ function Video() {
   // === Fetch all videos for Recommended ===
   useEffect(() => {
     axios
-      .get("/api/v1/videos/allVideo")
+      .get("https://voice-controll-youtube-backend-part.onrender.com/api/v1/videos/allVideo")
       .then(res => setRecommended(res.data.data || []))
       .catch(console.error);
   }, []);
@@ -1403,7 +1403,7 @@ function Video() {
   // === Like video ===
   const handleLikeVideo = async () => {
     try {
-      await axios.put(`/api/v1/videos/${id}/like`, {}, { withCredentials: true });
+      await axios.put(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/videos/${id}/like`, {}, { withCredentials: true });
       setVideoLiked(!videoLiked);
       setVideoLikes(prev => (videoLiked ? prev - 1 : prev + 1));
     } catch (err) {
@@ -1415,7 +1415,7 @@ function Video() {
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
     try {
-      const res = await axios.post(`/api/v1/messages`, { videoId: id, content: newMessage }, { withCredentials: true });
+      const res = await axios.post(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/messages`, { videoId: id, content: newMessage }, { withCredentials: true });
       setMessages(prev => [res.data, ...prev]);
       setNewMessage('');
     } catch (err) {
@@ -1426,7 +1426,7 @@ function Video() {
   // === Like comment ===
   const toggleMessageLike = async (msgId) => {
     try {
-      const res = await axios.post(`/api/v1/messages/${msgId}/like`, {}, { withCredentials: true });
+      const res = await axios.post(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/messages/${msgId}/like`, {}, { withCredentials: true });
       setMessages(prev =>
         prev.map(m => m._id === msgId ? { ...m, likes: res.data.likes } : m)
       );
@@ -1438,7 +1438,7 @@ function Video() {
   // === Delete comment ===
   const deleteMessage = async (msgId) => {
     try {
-      await axios.delete(`/api/v1/messages/${msgId}`, { withCredentials: true });
+      await axios.delete(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/messages/${msgId}`, { withCredentials: true });
       setMessages(prev => prev.filter(m => m._id !== msgId));
     } catch (err) {
       console.error(err);

@@ -9,7 +9,7 @@ function History() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await axios.get('/api/v1/account/history');
+        const response = await axios.get('https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/history');
         setHistory(response.data.data); // Assuming response.data contains the history array
       } catch (error) {
         console.error('Error fetching history:', error);

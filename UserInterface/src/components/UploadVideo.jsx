@@ -35,7 +35,7 @@ function UploadVideo() {
 
         try {
             setLoader(true)
-            const res = await axios.post('/api/v1/videos/publish', formData, {
+            const res = await axios.post('https://voice-controll-youtube-backend-part.onrender.com/api/v1/videos/publish', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
