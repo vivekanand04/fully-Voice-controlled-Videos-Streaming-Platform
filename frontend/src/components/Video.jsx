@@ -2473,7 +2473,7 @@ const [render,setRender]=useState(true);
   // === Fetch uploader data ===
   useEffect(() => {
     if (videoData?.owner) {
-<<<<<<< HEAD
+// <<<<<<< HEAD
       axios.get(`/api/v1/account/userData/${videoData.owner}`)
         .then(res => {
           console.log("the value is ",res);
@@ -2481,11 +2481,11 @@ const [render,setRender]=useState(true);
           setUserData(res.data.data)
              setChannelId(res.data.data._id || videoData.owner);
         })  
-=======
-      axios.get(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/userData/${videoData.owner}`)
-        .then(res => setUserData(res.data.data))
->>>>>>> ddfcda8548f4b1365dfce84957cff59c5b565e08
-        .catch(console.error);
+// =======
+//       axios.get(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/userData/${videoData.owner}`)
+//         .then(res => setUserData(res.data.data))
+// >>>>>>> ddfcda8548f4b1365dfce84957cff59c5b565e08
+//         .catch(console.error);
     }
   }, [videoData]);
 
@@ -2567,7 +2567,7 @@ const handleSubscribe = async () => {
 };
 
   // === Post comment ===
-<<<<<<< HEAD
+// <<<<<<< HEAD
  const handleSendMessage = async (overrideText = null) => {
   const messageText = overrideText !== null ? overrideText : newMessage;
   if (!messageText.trim()) return;
@@ -2589,29 +2589,29 @@ const handleSubscribe = async () => {
   }
 };
 
-=======
-  const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
-    try {
-      const res = await axios.post(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/messages`, { videoId: id, content: newMessage }, { withCredentials: true });
-      setMessages(prev => [res.data, ...prev]);
-      setNewMessage('');
-    } catch (err) {
-      if (err.response?.status === 401) navigate('/login');
-    }
-  };
->>>>>>> ddfcda8548f4b1365dfce84957cff59c5b565e08
+// =======
+//   const handleSendMessage = async () => {
+//     if (!newMessage.trim()) return;
+//     try {
+//       const res = await axios.post(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/messages`, { videoId: id, content: newMessage }, { withCredentials: true });
+//       setMessages(prev => [res.data, ...prev]);
+//       setNewMessage('');
+//     } catch (err) {
+//       if (err.response?.status === 401) navigate('/login');
+//     }
+//   };
+// >>>>>>> ddfcda8548f4b1365dfce84957cff59c5b565e08
 
   // === Like comment ===
   const toggleMessageLike = async (msgId) => {
     try {
-<<<<<<< HEAD
+// <<<<<<< HEAD
       const res = await axios.post(`/api/v1/messages/${msgId}/like`, {}, { withCredentials: true });
       setMessages(prev => 
-=======
-      const res = await axios.post(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/messages/${msgId}/like`, {}, { withCredentials: true });
-      setMessages(prev =>
->>>>>>> ddfcda8548f4b1365dfce84957cff59c5b565e08
+// =======
+//       const res = await axios.post(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/messages/${msgId}/like`, {}, { withCredentials: true });
+//       setMessages(prev =>
+// >>>>>>> ddfcda8548f4b1365dfce84957cff59c5b565e08
         prev.map(m => m._id === msgId ? { ...m, likes: res.data.likes } : m)
       );
     

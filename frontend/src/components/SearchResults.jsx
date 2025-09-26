@@ -101,20 +101,20 @@ function SearchResults() {
     const fetchVideos = async () => {
       try {
         setLoading(true);
-<<<<<<< HEAD
+// <<<<<<< HEAD
         const res = await axios.get(`http://localhost:5000/api/v1/account/search?q=${encodeURIComponent(query)}`);
         // support multiple response shapes
         const items = res?.data?.data || res?.data?.videos || res?.data || [];
         setVideos(Array.isArray(items) ? items : []);
-=======
-        // const res = await axios.get(`/api/v1/account/search?q=${query}`);
-        //  const res = await axios.get(`http://localhost:5000/api/v1/account/search?q=${query}`);
-         const res = await axios.get(` https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/search?q=${query}`);
-         console.log(res)
-        // setVideos(res.data.videos || []);
-        setVideos(res.data || []);
-        setLoading(false);
->>>>>>> ddfcda8548f4b1365dfce84957cff59c5b565e08
+// =======
+//         // const res = await axios.get(`/api/v1/account/search?q=${query}`);
+//         //  const res = await axios.get(`http://localhost:5000/api/v1/account/search?q=${query}`);
+//          const res = await axios.get(` https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/search?q=${query}`);
+//          console.log(res)
+//         // setVideos(res.data.videos || []);
+//         setVideos(res.data || []);
+//         setLoading(false);
+// >>>>>>> ddfcda8548f4b1365dfce84957cff59c5b565e08
       } catch (err) {
         console.error("Error fetching videos", err);
         setVideos([]);
