@@ -6,7 +6,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api/v1/': {
-        target: 'http://localhost:5000', // Update this to your backend server's URL
+        // target: 'http://localhost:5000', // Update this to your backend server's URL
+         target: 'https://voice-controll-youtube-backend-part.onrender.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/v1/, '/api/v1') // Corrected rewrite function
       }

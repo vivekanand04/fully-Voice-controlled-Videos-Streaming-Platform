@@ -103,27 +103,27 @@ const initialState = {
     status: false,
 };
 
-export const register = createAsyncThunk('/api/v1/account/signup', async (userData, { rejectWithValue }) => {
+export const register = createAsyncThunk('https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/signup', async (userData, { rejectWithValue }) => {
     try {
-        const response = await axios.post('/api/v1/account/signup', userData);
+        const response = await axios.post('https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/signup', userData);
         return response.data.data;
     } catch (error) {
         return rejectWithValue(error.response.data.message);
     }
 });
 
-export const login = createAsyncThunk('/api/v1/account/login', async (userData, { rejectWithValue }) => {
+export const login = createAsyncThunk('https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/login', async (userData, { rejectWithValue }) => {
     try {
-        const response = await axios.post('/api/v1/account/login', userData);
+        const response = await axios.post('https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/login', userData);
         return response.data.data;
     } catch (error) {
         return rejectWithValue(error.response.data.message);
     }
 });
 
-export const logout = createAsyncThunk('/api/v1/account/logout', async (_, { rejectWithValue }) => {
+export const logout = createAsyncThunk('https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/logout', async (_, { rejectWithValue }) => {
     try {
-        await axios.post('/api/v1/account/logout');
+        await axios.post('https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/logout');
         return true;
     } catch (error) {
         return rejectWithValue(error.response.data.message);

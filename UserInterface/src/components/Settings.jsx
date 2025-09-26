@@ -21,7 +21,7 @@ function Settings() {
             
             try {
                 setLoader(true)
-                const res = await axios.delete(`/api/v1/account/delete/${userdata._id}`)
+                const res = await axios.delete(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/delete/${userdata._id}`)
                 setLoader(false)
                 alert("Your channel is deleted !");
                 history("/signup");

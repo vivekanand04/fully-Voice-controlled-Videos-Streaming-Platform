@@ -116,6 +116,7 @@ const pendingIndexRef = useRef(null);
       setIsLoading(true);
       setError(null);
       try {
+<<<<<<< HEAD
         const response = await axios.get("/api/v1/account/history");
         // backend might return response.data.data or response.data
         const data = response?.data?.data ?? response?.data ?? [];
@@ -123,6 +124,12 @@ const pendingIndexRef = useRef(null);
       } catch (err) {
         console.error("Error fetching history:", err);
         setError("Failed to load watch history.");
+=======
+        const response = await axios.get('https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/history');
+        setHistory(response.data.data); // Assuming response.data contains the history array
+      } catch (error) {
+        console.error('Error fetching history:', error);
+>>>>>>> ddfcda8548f4b1365dfce84957cff59c5b565e08
       } finally {
         setIsLoading(false);
       }

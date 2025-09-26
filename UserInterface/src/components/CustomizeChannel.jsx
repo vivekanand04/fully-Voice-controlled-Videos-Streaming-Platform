@@ -20,7 +20,7 @@ function CustomizeChannel() {
       const fetchUser = async () => {
         try {
           setLoader(true);
-          const response = await axios.get(`/api/v1/account/userData/${data._id}`);
+          const response = await axios.get(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/userData/${data._id}`);
           const userData = response.data.data;
           setUserData(userData);
           setName(userData.name);
@@ -54,7 +54,7 @@ function CustomizeChannel() {
 
     try {
       setLoader(true);
-      const res = await axios.put(`/api/v1/account/update/${userdata._id}`, formData, {
+      const res = await axios.put(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/account/update/${userdata._id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

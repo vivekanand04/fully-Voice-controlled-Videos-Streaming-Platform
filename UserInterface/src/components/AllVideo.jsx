@@ -16,9 +16,14 @@ function AllVideo() {
     const fetchVideos = async () => {
       try {
         setLoader(true)
+<<<<<<< HEAD
         const response = await axios.get(`/api/v1/videos/allUserVideo/${userdata._id}`);
         console.log("the response value are",response);
         setVideos(response.data?.data || []);
+=======
+        const response = await axios.get(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/videos/allUserVideo/${userdata._id}`);
+        setVideos(response.data.data);
+>>>>>>> ddfcda8548f4b1365dfce84957cff59c5b565e08
         setLoader(false)
       } catch (error) {
         console.error('Error fetching videos:', error);
@@ -34,7 +39,7 @@ function AllVideo() {
         // console.log(videoId);
       try {
         setLoader(true)
-        await axios.delete(`/api/v1/videos/delete/${videoId}`);
+        await axios.delete(`https://voice-controll-youtube-backend-part.onrender.com/api/v1/videos/delete/${videoId}`);
         setVideos(videos.filter(video => video._id !== videoId));
         setLoader(false)
         alert(" Video deleted Successfully ! ")

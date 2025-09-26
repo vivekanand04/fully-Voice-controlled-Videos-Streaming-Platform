@@ -318,7 +318,7 @@ function Home() {
     const fetchVideos = async () => {
       try {
         setLoader(true);
-        const response = await axios.get("/api/v1/videos/allVideo");
+        const response = await axios.get("https://voice-controll-youtube-backend-part.onrender.com/api/v1/videos/allVideo");
         setVideos(response.data.data || []);
       } catch (error) {
         console.error("Error fetching videos:", error);
