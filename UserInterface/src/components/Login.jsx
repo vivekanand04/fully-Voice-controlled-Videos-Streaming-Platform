@@ -61,10 +61,19 @@ function Login() {
             <Link to="/" className="flex items-center justify-center mb-8 text-2xl font-semibold lg:mb-10">
                 <img src={logo} className="mr-4 h-11" alt="Logo" />
             </Link>
+
+           
             <div className="w-full max-w-xl p-6 space-y-8 sm:p-8 bg-white rounded-lg shadow">
-                <h2 className="text-2xl font-bold text-gray-900">
+                {/* <h2 className="text-2xl font-bold text-gray-900">
                     Login to Your Account
-                </h2>
+                </h2> */}
+               
+                 <span className="text-2xl font-bold text-gray-900">
+                    Login to Your Account
+                </span> 
+ 
+      
+
                 <form onSubmit={handleFormSubmit} className="mt-8 space-y-6">
                     <div>
                         <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900">Your email</label>
@@ -92,15 +101,47 @@ function Login() {
                             required
                         />
                     </div>
-                    <button type="submit" className="w-full px-5 py-3 text-base font-medium text-center text-white bg-gray-700 rounded-lg hover:bg-black focus:ring-4 focus:ring-primary-300 sm:w-auto">
+
+                    <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+  <button
+    type="submit"
+    className="px-5 py-3 w-full sm:w-auto text-base font-medium text-center text-white bg-gray-700 rounded-lg hover:bg-black focus:ring-4 focus:ring-primary-300"
+  >
+    Login
+  </button>
+
+  <div className="inline-flex flex-col text-xs text-gray-600 bg-gray-100 rounded-md px-3 py-2 shadow-sm w-full sm:w-auto">
+    <span className="font-semibold">Demo Login:</span>
+    <span>Email: <span className="text-yellow-500">demo1@gmail.com</span></span>
+    <span>Password: <span className="text-yellow-500">Demo123</span></span>
+  </div>
+</div>
+
+                    {/* <button type="submit" className="w-full px-5 py-3 text-base font-medium text-center text-white bg-gray-700 rounded-lg hover:bg-black focus:ring-4 focus:ring-primary-300 sm:w-auto">
                         Login
                     </button>
+
+                     <div className="  bottom-4 right-4 bg-gray-800 text-white text-xs sm:text-sm rounded-md px-4 py-2 shadow-lg mx-10">
+                    <div className="font-semibold">Demo Login:</div>
+                    <span>  Email: <span className="text-yellow-300">Demo1@gmail.com</span></span>
+                    <span> Password: <span className="text-yellow-300">Demo123</span></span>
+                </div> */}
+
                     {error && <div className="text-red-500 text-sm">{error}</div>}
                     <div className="text-sm font-medium text-gray-500">
                         Not registered? <Link to="/signup" className="text-blue-700 hover:underline">Create account</Link>
                     </div>
+                    
                 </form>
+                          {/* Demo credentials note */}
+  
+               
+
+                
             </div>
+
+
+            
         </div>
     );
 }

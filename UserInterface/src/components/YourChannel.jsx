@@ -13,7 +13,7 @@ function YourChannel() {
   const [userdata , setUserData]  = useState();
   
   useEffect(() => {
-      if (data._id) {
+      if (data&&data._id) {
           const fetchUser = async () => {
               try {
                   const response = await axios.get(`/api/v1/account/userData/${data._id}`);
@@ -25,7 +25,7 @@ function YourChannel() {
             
                 fetchUser();
               }
-    }, []);
+    }, [data]);
             
     // console.log(userdata);
 

@@ -180,265 +180,12 @@
 
 
 
-// import React, { useState, useEffect, useRef } from 'react';
-// import axios from 'axios';
-// import { Link, useParams } from 'react-router-dom';
 
-// function Video() {
-//   const { id } = useParams();
-//   const [videoData, setVideoData] = useState(id);
-//   const [loading, setLoading] = useState(true);
-//   const [userData, setUserData] = useState(null);
-//   const [error, setError] = useState(null);
-//   const [recommended, setRecommended] = useState([]);
-//   const [showFullDesc, setShowFullDesc] = useState(false);
 
-//   // Voice state
-//   const [listening, setListening] = useState(false);
-//   const [statusMessage, setStatusMessage] = useState('');
 
-//   const videoRef = useRef(null);
-//   const recognitionRef = useRef(null);
 
-//   const formatDate = (dateString) => {
-//     const options = { year: 'numeric', month: 'long' };
-//     const date = new Date(dateString);
-//     return date.toLocaleDateString(undefined, options);
-//   };
 
-//   // === API Calls ===
-//   useEffect(() => {
-//     const fetchVideoData = async () => {
-//       try {
-//         const response = await axios.get(`/api/v1/videos/videoData/${id}`);
-//         setVideoData(response.data.data);
-//       } catch (err) {
-//         setError(err.message || 'Error fetching video');
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-//     fetchVideoData();
-//   }, [id]);
-
-//   useEffect(() => {
-//     axios.put(`/api/v1/videos/incrementView/${id}`).catch(console.error);
-//     axios.put(`/api/v1/account/addToHistory/${id}`).catch(console.error);
-//   }, [id]);
-
-//   useEffect(() => {
-//     if (videoData && videoData.owner) {
-//       axios.get(`/api/v1/account/userData/${videoData.owner}`)
-//         .then(res => setUserData(res.data.data))
-//         .catch(console.error);
-//     }
-//   }, [videoData]);
-
-//   // Cleanup recognition
-//   useEffect(() => {
-//     return () => {
-//       if (recognitionRef.current) {
-//         recognitionRef.current.stop();
-//         recognitionRef.current = null;
-//       }
-//     };
-//   }, []);
-
-//   // === Voice Command Parser ===
-//   const handleVoiceCommand = (text) => {
-//     if (!videoRef.current) return;
-//     const t = text.toLowerCase();
-
-//     if (t.includes("pause")) {
-//       videoRef.current.pause();
-//       return;
-//     }
-//     if (t.includes("play") || t.includes("resume")) {
-//       videoRef.current.play();
-//       return;
-//     }
-
-//     if (t.includes("forward")) {
-//       const seconds = extractSeconds(t) || 10;
-//       videoRef.current.currentTime = Math.min(videoRef.current.duration, videoRef.current.currentTime + seconds);
-//       return;
-//     }
-//     if (t.includes("back") || t.includes("rewind")) {
-//       const seconds = extractSeconds(t) || 10;
-//       videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - seconds);
-//       return;
-//     }
-
-//     const speed = parseSpeedFromText(t);
-//     if (speed !== null) {
-//       videoRef.current.playbackRate = speed;
-//       return;
-//     }
-//   };
-
-//   const parseSpeedFromText = (t) => {
-//     if (!t) return null;
-
-//     if (t.includes('normal')) return 1;
-//     if (t.includes('half')) return 0.5;
-//     if (t.includes('quarter')) return 0.25;
-//     if (t.includes('1.5') || t.includes('one point five')) return 1.5;
-//     if (t.includes('double') || t.includes('two')) return 2;
-//     if (t.includes('triple') || t.includes('three')) return 3;
-
-//     if (t.includes('faster') || t.includes('increase')) {
-//       const cur = videoRef.current?.playbackRate ?? 1;
-//       return Math.min(cur + 0.25, 16);
-//     }
-//     if (t.includes('slower') || t.includes('decrease')) {
-//       const cur = videoRef.current?.playbackRate ?? 1;
-//       return Math.max(cur - 0.25, 0.25);
-//     }
-
-//     const numeric = t.match(/(\d+(\.\d+)?)/);
-//     if (numeric) {
-//       const n = parseFloat(numeric[0]);
-//       if (!Number.isNaN(n) && n > 0 && n <= 16) return n;
-//     }
-
-//     return null;
-//   };
-
-//   const extractSeconds = (text) => {
-//     const match = text.match(/(\d+)\s*second/);
-//     if (match) return parseInt(match[1]);
-//     return null;
-//   };
-
-//   // === Start Listening ===
-//   const startListening = () => {
-//     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-//     if (!SpeechRecognition) {
-//       setStatusMessage('Speech Recognition not supported in this browser.');
-//       return;
-//     }
-
-//     if (recognitionRef.current) recognitionRef.current.stop();
-
-//     const recognition = new SpeechRecognition();
-//     recognitionRef.current = recognition;
-//     recognition.lang = 'en-US';
-//     recognition.interimResults = false;
-//     recognition.continuous = false;
-
-//     recognition.onstart = () => {
-//       setListening(true);
-//     };
-
-//     recognition.onresult = (event) => {
-//       let final = '';
-//       for (let i = event.resultIndex; i < event.results.length; ++i) {
-//         if (event.results[i].isFinal) final += event.results[i][0].transcript;
-//       }
-//       if (final) handleVoiceCommand(final);
-//     };
-
-//     recognition.onerror = () => {
-//       setListening(false);
-//     };
-
-//     recognition.onend = () => {
-//       setListening(false);
-//     };
-
-//     recognition.start();
-//   };
-
-//   const stopListening = () => {
-//     recognitionRef.current?.stop();
-//     recognitionRef.current = null;
-//     setListening(false);
-//   };
-
-//   if (loading) return <div>Loading...</div>;
-//   if (error) return <div>Error: {error}</div>;
-//   if (!videoData) return <div>No video data found.</div>;
-
-//   return (
-//     <div className="flex flex-col lg:flex-row gap-6 px-10 pt-6">
-//       {/* Left Side */}
-//       <div className="lg:w-2/3">
-//         <div className="relative w-full aspect-video bg-black">
-//           <video ref={videoRef} className="w-full h-full" controls>
-//             <source src={videoData.videoFile} type="video/mp4" />
-//           </video>
-//         </div>
-
-//         {/* Video Info */}
-//         <div className="mt-4">
-//           <h1 className="mb-3 text-xl font-semibold">{videoData.title}</h1>
-//           <div className="flex items-center justify-between border-b border-gray-200 pb-3">
-//             {userData ? (
-//               <div className="flex items-center gap-3">
-//                 <img src={userData.avatar} className="w-12 h-12 rounded-full" alt="User" />
-//                 <div>
-//                   <p className="font-medium">{userData.name}</p>
-//                   <p className="text-sm text-gray-500">Subscribed • 303k</p>
-//                 </div>
-
-//                 {/* Mic Button in Middle */}
-//                 <button
-//                   onClick={() => (listening ? stopListening() : startListening())}
-//                   className={`ml-4 px-3 py-2 rounded-md text-white ${listening ? 'bg-green-600' : 'bg-blue-600'}`}
-//                 >
-//                   {listening ? '🎤 Listening…' : '🎤 Voice'}
-//                 </button>
-//               </div>
-//             ) : (
-//               <div>Loading user...</div>
-//             )}
-
-//             {/* Subscribe Button on Right End */}
-//             <button className="bg-red-600 text-white px-4 py-1 rounded-md">Subscribe</button>
-//           </div>
-
-//           <div className="bg-gray-100 p-4 rounded-lg mt-3">
-//             <div className="flex gap-6 text-sm text-gray-700">
-//               <span>👁 {videoData.views} views</span>
-//               <span>📅 {formatDate(videoData.createdAt)}</span>
-//             </div>
-//             <p className="text-sm mt-2">
-//               {showFullDesc
-//                 ? videoData.description
-//                 : videoData.description?.slice(0, 150) + (videoData.description?.length > 150 ? '...' : '')}
-//             </p>
-//             {videoData.description?.length > 150 && (
-//               <button onClick={() => setShowFullDesc(!showFullDesc)} className="text-blue-600 text-sm mt-1">
-//                 {showFullDesc ? 'See less' : 'See more'}
-//               </button>
-//             )}
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Right Side */}
-//       <div className="lg:w-1/3 space-y-4">
-//         <h2 className="font-semibold text-lg mb-2">Recommended</h2>
-//         {recommended.length > 0 ? (
-//           recommended.map((vid) => (
-//             <Link key={vid._id} to={`/watch/${vid._id}`} className="flex gap-3 hover:bg-gray-100 p-2 rounded-lg">
-//               <img src={vid.thumbnail} className="w-40 h-24 object-cover rounded-lg" alt={vid.title} />
-//               <div>
-//                 <h3 className="text-sm font-medium">{vid.title}</h3>
-//                 <p className="text-xs text-gray-600">{vid.owner?.name || 'Unknown'}</p>
-//                 <p className="text-xs text-gray-500">{vid.views} views</p>
-//               </div>
-//             </Link>
-//           ))
-//         ) : (
-//           <p>No recommended videos.</p>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default Video;
+//CODE 1
 
 // import React, { useState, useEffect, useRef } from 'react';
 // import axios from 'axios';
@@ -741,290 +488,12 @@
 
 
 
-// import React, { useState, useEffect, useRef } from 'react';
-// import axios from 'axios';
-// import { Link, useParams, useNavigate } from 'react-router-dom';
-
-// function Video() {
-//   const { id } = useParams();
-//   const navigate = useNavigate();
-
-//   const [videoData, setVideoData] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const [userData, setUserData] = useState(null);
-//   const [error, setError] = useState(null);
-//   const [recommended, setRecommended] = useState([]);
-//   const [showFullDesc, setShowFullDesc] = useState(false);
-
-//   // Likes
-//   const [videoLikes, setVideoLikes] = useState(0);
-//   const [videoLiked, setVideoLiked] = useState(false);
-
-//   // Comments
-//   const [messages, setMessages] = useState([]);
-//   const [newMessage, setNewMessage] = useState('');
-
-//   // Voice state
-//   const [listening, setListening] = useState(false);
-//   const [statusMessage, setStatusMessage] = useState('');
-
-//   const videoRef = useRef(null);
-//   const recognitionRef = useRef(null);
-
-//   const formatDate = (dateString) => {
-//     const options = { year: 'numeric', month: 'long' };
-//     const date = new Date(dateString);
-//     return date.toLocaleDateString(undefined, options);
-//   };
-
-//   // === API Calls ===
-//   useEffect(() => {
-//     const fetchVideoData = async () => {
-//       try {
-//         const response = await axios.get(`/api/v1/videos/videoData/${id}`, {
-//           withCredentials: true
-//         });
-//         setVideoData(response.data.data);
-//         setVideoLikes(response.data.data.likes?.length || 0);
-//       } catch (err) {
-//         setError(err.message || 'Error fetching video');
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-//     fetchVideoData();
-//   }, [id]);
-
-//   useEffect(() => {
-//     axios.put(`/api/v1/videos/incrementView/${id}`).catch(console.error);
-//     axios.put(`/api/v1/account/addToHistory/${id}`).catch(console.error);
-//   }, [id]);
-
-//   useEffect(() => {
-//     if (videoData && videoData.owner) {
-//       axios.get(`/api/v1/account/userData/${videoData.owner}`)
-//         .then(res => setUserData(res.data.data))
-//         .catch(console.error);
-//     }
-//   }, [videoData]);
-
-//   // useEffect(() => {
-//   //   axios
-//   //     .get(`/api/v1/messages/video/${id}`, { withCredentials: true })
-//   //     .then((res) => setMessages(res.data))
-//   //     .catch(console.error);
-//   // }, [id]);
-
-//   useEffect(() => {
-//   axios
-//     .get(`/api/v1/messages/video/${id}`, { withCredentials: true })
-//     .then((res) => setMessages(res.data.data || [])) // ensure array
-//     .catch(console.error);
-// }, [id]);
-
-//   // === Like video ===
-//   const handleLikeVideo = async () => {
-//     try {
-//       await axios.put(`/api/v1/videos/${id}/like`, {}, { withCredentials: true });
-//       setVideoLiked(!videoLiked);
-//       setVideoLikes((prev) => (videoLiked ? prev - 1 : prev + 1));
-//     } catch (err) {
-//       if (err.response?.status === 401) navigate('/login');
-//     }
-//   };
-
-//   // === Post message ===
-//   const handleSendMessage = async () => {
-//     if (!newMessage.trim()) return;
-//     try {
-//       const res = await axios.post(
-//         `/api/v1/messages`,
-//         { videoId: id, content: newMessage },
-//         { withCredentials: true }
-//       );
-//       // setMessages((prev) => [res.data, ...prev]);
-//       setMessages((prev = []) => [res.data, ...prev]); // fallback to []
-
-//       setNewMessage('');
-//     } catch (err) {
-//       if (err.response?.status === 401) navigate('/login');
-//     }
-//   };
-
-//   // === Toggle like message ===
-//   const toggleMessageLike = async (msgId) => {
-//     try {
-//       const res = await axios.post(
-//         `/api/v1/messages/${msgId}/like`,
-//         {},
-//         { withCredentials: true }
-//       );
-//       setMessages((prev) =>
-//         prev.map((m) =>
-//           m._id === msgId ? { ...m, likes: res.data.likes } : m
-//         )
-//       );
-//     } catch (err) {
-//       if (err.response?.status === 401) navigate('/login');
-//     }
-//   };
-
-//   // === Delete message ===
-//   const deleteMessage = async (msgId) => {
-//     try {
-//       await axios.delete(`/api/v1/messages/${msgId}`, { withCredentials: true });
-//       setMessages((prev) => prev.filter((m) => m._id !== msgId));
-//     } catch (err) {
-//       console.error(err);
-//     }
-//   };
-
-//   // === Voice Command Parser (keep your existing code) ===
-//   const handleVoiceCommand = async (text) => { /* ... your existing logic ... */ };
-
-//   const parseSpeedFromText = (t) => { /* ... your existing logic ... */ };
-//   const extractSeconds = (text) => { /* ... your existing logic ... */ };
-
-//   const startListening = () => { /* ... your existing logic ... */ };
-//   const stopListening = () => { /* ... your existing logic ... */ };
-
-//   if (loading) return <div>Loading...</div>;
-//   if (error) return <div>Error: {error}</div>;
-//   if (!videoData) return <div>No video data found.</div>;
-
-//   return (
-//     <div className="flex flex-col lg:flex-row gap-6 px-10 pt-6">
-//       {/* Left Side */}
-//       <div className="lg:w-2/3">
-//         <div className="relative w-full aspect-video bg-black">
-//           <video ref={videoRef} className="w-full h-full" controls>
-//             <source src={videoData.videoFile} type="video/mp4" />
-//           </video>
-//         </div>
-
-//         {/* Video Info */}
-//         <div className="mt-4">
-//           <h1 className="mb-3 text-xl font-semibold">{videoData.title}</h1>
-//           <div className="flex items-center justify-between border-b border-gray-200 pb-3">
-//             {userData ? (
-//               <div className="flex items-center gap-3">
-//                 <img src={userData.avatar} className="w-12 h-12 rounded-full" alt="User" />
-//                 <div>
-//                   <p className="font-medium">{userData.name}</p>
-//                   <p className="text-sm text-gray-500">Subscribed • 303k</p>
-//                 </div>
-//                 <button
-//                   onClick={() => (listening ? stopListening() : startListening())}
-//                   className={`ml-4 px-3 py-2 rounded-md text-white ${listening ? 'bg-green-600' : 'bg-blue-600'}`}
-//                 >
-//                   {listening ? '🎤 Listening…' : '🎤 Voice'}
-//                 </button>
-//               </div>
-//             ) : (
-//               <div>Loading user...</div>
-//             )}
-//             <button className="bg-red-600 text-white px-4 py-1 rounded-md">Subscribe</button>
-//           </div>
-
-//           <div className="bg-gray-100 p-4 rounded-lg mt-3">
-//             <div className="flex gap-6 text-sm text-gray-700">
-//               <span>👁 {videoData.views} views</span>
-//               <span>📅 {formatDate(videoData.createdAt)}</span>
-//               <button
-//                 onClick={handleLikeVideo}
-//                 className={`ml-auto px-3 py-1 rounded-md text-white ${videoLiked ? 'bg-green-600' : 'bg-gray-600'}`}
-//               >
-//                 👍 {videoLikes}
-//               </button>
-//             </div>
-//             <p className="text-sm mt-2">
-//               {showFullDesc
-//                 ? videoData.description
-//                 : videoData.description?.slice(0, 150) + (videoData.description?.length > 150 ? '...' : '')}
-//             </p>
-//             {videoData.description?.length > 150 && (
-//               <button onClick={() => setShowFullDesc(!showFullDesc)} className="text-blue-600 text-sm mt-1">
-//                 {showFullDesc ? 'See less' : 'See more'}
-//               </button>
-//             )}
-//           </div>
-//         </div>
-
-//         {/* Comments Section */}
-//         <div className="mt-6">
-//           <h2 className="font-semibold text-lg mb-3">Comments</h2>
-//           <div className="flex gap-2 mb-4">
-//             <input
-//               type="text"
-//               value={newMessage}
-//               onChange={(e) => setNewMessage(e.target.value)}
-//               className="flex-1 border rounded-md px-3 py-2"
-//               placeholder="Add a comment..."
-//             />
-//             <button
-//               onClick={handleSendMessage}
-//               className="bg-blue-600 text-white px-4 py-2 rounded-md"
-//             >
-//               Send
-//             </button>
-//           </div>
-
-//           <div className="space-y-3">
-//             {messages.length > 0 ? (
-//               messages.map((msg) => (
-//                 <div key={msg._id} className="bg-gray-100 p-3 rounded-lg flex justify-between">
-//                   <div>
-//                     <p className="font-medium">{msg.user?.name || 'Anon'}</p>
-//                     <p>{msg.content}</p>
-//                     <div className="flex items-center gap-3 text-sm mt-1">
-//                       <button
-//                         onClick={() => toggleMessageLike(msg._id)}
-//                         className="text-blue-600"
-//                       >
-//                         👍 {msg.likes?.length || 0}
-//                       </button>
-//                       <button
-//                         onClick={() => deleteMessage(msg._id)}
-//                         className="text-red-600"
-//                       >
-//                         Delete
-//                       </button>
-//                     </div>
-//                   </div>
-//                 </div>
-//               ))
-//             ) : (
-//               <p>No comments yet.</p>
-//             )}
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Right Side */}
-//       <div className="lg:w-1/3 space-y-4">
-//         <h2 className="font-semibold text-lg mb-2">Recommended</h2>
-//         {recommended.length > 0 ? (
-//           recommended.map((vid) => (
-//             <Link key={vid._id} to={`/watch/${vid._id}`} className="flex gap-3 hover:bg-gray-100 p-2 rounded-lg">
-//               <img src={vid.thumbnail} className="w-40 h-24 object-cover rounded-lg" alt={vid.title} />
-//               <div>
-//                 <h3 className="text-sm font-medium">{vid.title}</h3>
-//                 <p className="text-xs text-gray-600">{vid.owner?.name || 'Unknown'}</p>
-//                 <p className="text-xs text-gray-500">{vid.views} views</p>
-//               </div>
-//             </Link>
-//           ))
-//         ) : (
-//           <p>No recommended videos.</p>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default Video;
 
 
+
+
+
+//CODE 2
 
 // import React, { useState, useEffect, useRef } from 'react';
 // import axios from 'axios';
@@ -1093,6 +562,14 @@
 //       .catch(console.error);
 //   }, [id]);
 
+//   // === Fetch all videos for Recommended ===
+//   useEffect(() => {
+//     axios
+//       .get("/api/v1/videos/allVideo")
+//       .then(res => setRecommended(res.data.data || []))
+//       .catch(console.error);
+//   }, []);
+
 //   // === Like video ===
 //   const handleLikeVideo = async () => {
 //     try {
@@ -1159,34 +636,40 @@
 
 //         {/* Video Info */}
 //         <h1 className="mt-4 mb-2 text-xl font-semibold">{videoData.title}</h1>
-//         <div className="flex items-center justify-between border-b border-gray-200 pb-3">
-//           {/* Uploader */}
+
+//         {/* Uploader + Actions */}
+//         <div className="border-b border-gray-200 pb-3">
 //           {userData ? (
-//             <div className="flex items-center gap-3">
-//               <img src={userData.avatar} className="w-12 h-12 rounded-full" alt="User" />
-//               <div>
-//                 <p className="font-medium">{userData.name}</p>
-//                 <p className="text-sm text-gray-500">Subscribed • 303k</p>
+//             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+//               {/* Row 1: uploader + mic */}
+//               <div className="flex items-center gap-3 flex-1">
+//                 <img src={userData.avatar} className="w-12 h-12 rounded-full" alt="User" />
+//                 <div>
+//                   <p className="font-medium">{userData.name}</p>
+//                   <p className="text-sm text-gray-500">Subscribed • 303k</p>
+//                 </div>
+
+//                 {/* 🎤 Mic always last in row */}
+//                 <button
+//                   onClick={() => setListening(!listening)}
+//                   className={`ml-auto px-3 py-2 rounded-md text-white ${listening ? 'bg-green-600' : 'bg-blue-600'}`}
+//                 >
+//                   🎤
+//                 </button>
 //               </div>
-//               {/* 🎤 Mic */}
-//               <button
-//                 onClick={() => setListening(!listening)}
-//                 className={`ml-4 px-3 py-2 rounded-md text-white ${listening ? 'bg-green-600' : 'bg-blue-600'}`}
-//               >
-//                 🎤
-//               </button>
-//               {/* 👍 Like button (between mic & subscribe) */}
-//               <button
-//                 onClick={handleLikeVideo}
-//                 className={`px-3 py-2 rounded-md text-white ${videoLiked ? 'bg-green-600' : 'bg-gray-600'}`}
-//               >
-//                 👍 {videoLikes}
-//               </button>
+
+//               {/* Row 2 (on mobile) or right side (desktop): Like + Subscribe */}
+//               <div className="flex gap-3">
+//                 <button
+//                   onClick={handleLikeVideo}
+//                   className={`px-3 py-2 rounded-md text-white ${videoLiked ? 'bg-green-600' : 'bg-gray-600'}`}
+//                 >
+//                   👍 {videoLikes}
+//                 </button>
+//                 <button className="bg-red-600 text-white px-4 py-1 rounded-md">Subscribe</button>
+//               </div>
 //             </div>
 //           ) : <p>Loading user...</p>}
-
-//           {/* 🔴 Subscribe */}
-//           <button className="bg-red-600 text-white px-4 py-1 rounded-md">Subscribe</button>
 //         </div>
 
 //         {/* Views, Date & Desc */}
@@ -1239,8 +722,98 @@
 //               </button>
 //             </div>
 
-//             <div className="space-y-3">
+//             {/* <div className="space-y-3">
 //               {messages.map((msg) => (
+//                 <div key={msg._id} className="bg-gray-100 p-3 rounded-lg">
+//                  {/* <p className="font-medium">{msg.author?.name || 'Anon'}</p> */}
+
+//                   {/* <p>{msg.content}</p>
+//                   <div className="flex gap-4 text-sm mt-1">
+//                     <button onClick={() => toggleMessageLike(msg._id)} className="text-blue-600">
+//                       👍 {msg.likes?.length || 0}
+//                     </button>
+//                     <button onClick={() => deleteMessage(msg._id)} className="text-red-600">
+//                       Delete
+//                     </button>
+//                   </div>
+//                 </div>
+//               ))}
+//             </div> */} 
+
+
+
+//             <div className="space-y-3">
+//   {messages.map((msg) => (
+//     <div key={msg._id} className="bg-gray-100 p-3 rounded-lg">
+//       <div className="flex justify-between items-center">
+//         {/* Left: author */}
+//         <div className="flex items-center gap-2">
+//           <img src={msg.author?.avatar} alt="" className="w-8 h-8 rounded-full" />
+//           <span className="font-medium">{msg.author?.name || "Anon"}</span>
+//         </div>
+
+//         {/* Right: actions */}
+//         <div className="flex gap-4 text-sm">
+//           <button onClick={() => toggleMessageLike(msg._id)} className="text-blue-600">
+//             👍 {msg.likes?.length || 0}
+//           </button>
+//           <button onClick={() => deleteMessage(msg._id)} className="text-red-600">
+//             Delete
+//           </button>
+//         </div>
+//       </div>
+
+//       {/* Message text */}
+//       <p className="mt-2">{msg.content}</p>
+//     </div>
+//   ))}
+// </div>
+
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* ===== Right Section ===== */}
+//       <div className="lg:w-1/3 space-y-4">
+//         <h2 className="font-semibold text-lg">Recommended</h2>
+//         {recommended.length > 0 ? (
+//           recommended.map(vid => (
+//             <Link key={vid._id} to={`/watch/${vid._id}`} className="flex gap-3 hover:bg-gray-100 p-2 rounded-lg">
+//               <img src={vid.thumbnail} className="w-40 h-24 object-cover rounded-lg" alt={vid.title} />
+//               <div>
+//                 <h3 className="text-sm font-medium">{vid.title}</h3>
+//                 <p className="text-xs text-gray-600">{vid.owner?.name || 'Unknown'}</p>
+//                 <p className="text-xs text-gray-500">{vid.views} views</p>
+//               </div>
+//             </Link>
+//           ))
+//         ) : <p>No recommended videos</p>}
+//       </div>
+
+//       {/* ===== Mobile Comments Modal ===== */}
+//       {showCommentsModal && (
+//         <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-end">
+//           <div className="bg-white w-full h-2/3 rounded-t-2xl p-4 overflow-y-auto">
+//             <div className="flex justify-between items-center mb-4">
+//               <h3 className="font-semibold">Comments</h3>
+//               <button onClick={() => setShowCommentsModal(false)}>✖</button>
+//             </div>
+
+//             <div className="flex gap-2 mb-4">
+//               <input
+//                 type="text"
+//                 value={newMessage}
+//                 onChange={(e) => setNewMessage(e.target.value)}
+//                 className="flex-1 border rounded-md px-3 py-2"
+//                 placeholder="Add a comment..."
+//               />
+//               <button onClick={handleSendMessage} className="bg-blue-600 text-white px-4 py-2 rounded-md">
+//                 Send
+//               </button>
+//             </div>
+
+//             <div className="space-y-3">
+//               {messages.map(msg => (
 //                 <div key={msg._id} className="bg-gray-100 p-3 rounded-lg">
 //                   <p className="font-medium">{msg.user?.name || 'Anon'}</p>
 //                   <p>{msg.content}</p>
@@ -1252,6 +825,634 @@
 //                       Delete
 //                     </button>
 //                   </div>
+//                 </div>
+//               ))}
+//             </div>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+// export default Video;
+
+
+
+
+
+//CODE 3
+// import React, { useState, useEffect, useRef } from 'react';
+// import axios from 'axios';
+// import { Link, useParams, useNavigate } from 'react-router-dom';
+
+// function Video() {
+//   const { id } = useParams();
+//   const navigate = useNavigate();
+
+//   const [videoData, setVideoData] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [userData, setUserData] = useState(null);
+//   const [error, setError] = useState(null);
+//   const [recommended, setRecommended] = useState([]);
+//   const [showFullDesc, setShowFullDesc] = useState(false);
+//   const [detected, setDetected] = useState('');
+
+
+//   // Likes
+//   const [videoLikes, setVideoLikes] = useState(0);
+//   const [videoLiked, setVideoLiked] = useState(false);
+
+//   // Comments
+//   const [messages, setMessages] = useState([]);
+//   const [newMessage, setNewMessage] = useState('');
+//   const [showCommentsModal, setShowCommentsModal] = useState(false);
+
+//   // Voice state
+//   const [listening, setListening] = useState(false);
+//   const [statusMessage, setStatusMessage] = useState('');
+//   const videoRef = useRef(null);
+//   const recognitionRef = useRef(null);
+
+
+
+//   // === Fetch video ===
+//   useEffect(() => {
+//     const fetchVideoData = async () => {
+//       try {
+//         const res = await axios.get(`/api/v1/videos/videoData/${id}`, { withCredentials: true });
+//         setVideoData(res.data.data);
+//         setVideoLikes(res.data.data.likes?.length || 0);
+//       } catch (err) {
+//         setError(err.message || 'Error fetching video');
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+//     fetchVideoData();
+//   }, [id]);
+
+//   // === Increment view + add to history ===
+//   useEffect(() => {
+//     axios.put(`/api/v1/videos/incrementView/${id}`).catch(console.error);
+//     axios.put(`/api/v1/account/addToHistory/${id}`).catch(console.error);
+//   }, [id]);
+
+//   // === Fetch uploader data ===
+//   useEffect(() => {
+//     if (videoData?.owner) {
+//       axios.get(`/api/v1/account/userData/${videoData.owner}`)
+//         .then(res => setUserData(res.data.data))
+//         .catch(console.error);
+//     }
+//   }, [videoData]);
+
+//   // === Fetch comments ===
+//   useEffect(() => {
+//     axios
+//       .get(`/api/v1/messages/video/${id}`, { withCredentials: true })
+//       .then(res => setMessages(res.data.messages || []))
+//       .catch(console.error);
+//   }, [id]);
+
+//   // === Fetch all videos for Recommended ===
+//   useEffect(() => {
+//     axios
+//       .get("/api/v1/videos/allVideo")
+//       .then(res => setRecommended(res.data.data || []))
+//       .catch(console.error);
+//   }, []);
+
+//   // === Like video ===
+//   const handleLikeVideo = async () => {
+//     try {
+//       await axios.put(`/api/v1/videos/${id}/like`, {}, { withCredentials: true });
+//       setVideoLiked(!videoLiked);
+//       setVideoLikes(prev => (videoLiked ? prev - 1 : prev + 1));
+//     } catch (err) {
+//       if (err.response?.status === 401) navigate('/login');
+//     }
+//   };
+
+//   // === Post comment ===
+//   const handleSendMessage = async () => {
+   
+//     if (!newMessage.trim()) return;
+//     try {
+//       console.log("Sending message:", { videoId: id, content: newMessage});
+
+//       const res = await axios.post(`/api/v1/messages`, { videoId: id, content: newMessage }, { withCredentials: true });
+//       setMessages(prev => [res.data, ...prev]); 
+//       setNewMessage('');
+//     } catch (err) {
+//       if (err.response?.status === 401) navigate('/login');
+//     }
+//   };
+
+//   // === Like comment ===
+//   const toggleMessageLike = async (msgId) => {
+//     try {
+//       const res = await axios.post(`/api/v1/messages/${msgId}/like`, {}, { withCredentials: true });
+//       setMessages(prev =>
+//         prev.map(m => m._id === msgId ? { ...m, likes: res.data.likes } : m)
+//       );
+//     } catch (err) {
+//       if (err.response?.status === 401) navigate('/login');
+//     }
+//   };
+
+//   // === Delete comment ===
+//   const deleteMessage = async (msgId) => {
+//     try {
+//       await axios.delete(`/api/v1/messages/${msgId}`, { withCredentials: true });
+//       setMessages(prev => prev.filter(m => m._id !== msgId));
+//     } catch (err) {
+//       console.error(err);
+//     }
+//   };
+
+//   // === Voice Command Parser ===
+//   //   const handleVoiceCommand = async (text) => {
+//   //     if (!videoRef.current) return;
+//   //     const t = text.toLowerCase();
+
+//   //     if (t.includes("pause")) return videoRef.current.pause();
+//   //     if (t.includes("play") || t.includes("resume")) return videoRef.current.play();
+
+//   //     if (t.includes("forward")) {
+//   //       const seconds = extractSeconds(t) || 10;
+//   //       videoRef.current.currentTime = Math.min(videoRef.current.duration, videoRef.current.currentTime + seconds);
+//   //       return;
+//   //     }
+//   //     if (t.includes("back") || t.includes("rewind")) {
+//   //       const seconds = extractSeconds(t) || 10;
+//   //       videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - seconds);
+//   //       return;
+//   //     }
+
+//   //     const speed = parseSpeedFromText(t);
+//   //     if (speed !== null) {
+//   //       videoRef.current.playbackRate = speed;
+//   //       return;
+//   //     }
+
+//   //     if (t.includes("volume up") || t.includes("increase volume")) {
+//   //       videoRef.current.volume = Math.min(1, videoRef.current.volume + 0.3);
+//   //       return;
+//   //     }
+//   //     if (t.includes("volume down") || t.includes("decrease volume")) {
+//   //       videoRef.current.volume = Math.max(0, videoRef.current.volume - 0.3);
+//   //       return;
+//   //     }
+//   //     if (t.includes("mute")) {
+//   //       videoRef.current.muted = true;
+//   //       return;
+//   //     }
+//   //     if (t.includes("unmute")) {
+//   //       videoRef.current.muted = false;
+//   //       return;
+//   //     }
+
+//   //     if (t.includes("fullscreen")) {
+//   //       if (videoRef.current.requestFullscreen) videoRef.current.requestFullscreen();
+//   //       return;
+//   //     }
+//   //     if (t.includes("exit fullscreen") || t.includes("normal screen")) {
+//   //       if (document.exitFullscreen) document.exitFullscreen();
+//   //       return;
+//   //     }
+
+//   //     if (t.includes("picture in picture") || t.includes("pip")) {
+//   //       try {
+//   //         if (document.pictureInPictureElement) {
+//   //           await document.exitPictureInPicture();
+//   //         } else {
+//   //           await videoRef.current.requestPictureInPicture();
+//   //         }
+//   //       } catch (err) {
+//   //         console.error("PIP error:", err);
+//   //       }
+//   //       return;
+//   //     }
+
+//   //     if (t.includes("download")) {
+//   //       const a = document.createElement("a");
+//   //       a.href = videoData.videoFile;
+//   //       a.download = `${videoData.title || "video"}.mp4`;
+//   //       document.body.appendChild(a);
+//   //       a.click();
+//   //       document.body.removeChild(a);
+//   //       return;
+//   //     }
+//   //   };
+
+//   //   const parseSpeedFromText = (t) => {
+//   //     if (!t) return null;
+//   //     if (t.includes('normal')) return 1;
+//   //     if (t.includes('half')) return 0.5;
+//   //     if (t.includes('quarter')) return 0.25;
+//   //     if (t.includes('1.5') || t.includes('one point five')) return 1.5;
+//   //     if (t.includes('double') || t.includes('two')) return 2;
+//   //     if (t.includes('triple') || t.includes('three')) return 3;
+
+//   //     if (t.includes('faster') || t.includes('increase')) {
+//   //       const cur = videoRef.current?.playbackRate ?? 1;
+//   //       return Math.min(cur + 0.25, 16);
+//   //     }
+//   //     if (t.includes('slower') || t.includes('decrease')) {
+//   //       const cur = videoRef.current?.playbackRate ?? 1;
+//   //       return Math.max(cur - 0.25, 0.25);
+//   //     }
+
+//   //     const numeric = t.match(/(\d+(\.\d+)?)/);
+//   //     if (numeric) {
+//   //       const n = parseFloat(numeric[0]);
+//   //       if (!Number.isNaN(n) && n > 0 && n <= 16) return n;
+//   //     }
+//   //     return null;
+//   //   };
+//   // === Voice Command Parser ===
+  
+
+
+
+//   const handleVoiceCommand = (command) => {
+//    const video = videoRef.current;
+
+//     if (!video) return;
+
+//     const lower = command.toLowerCase();
+//     console.log("The detected voice is : ", lower)
+//     console.log("exact word is  : ", lower.includes)
+//     setDetected(lower);
+//     let matched = true; // ✅ Track if any command matched
+
+//     // Auto clear after 5 seconds
+//     setTimeout(() => setDetected(''), 5000);
+//     // 🔊 Volume controls
+//     // 🔊 Volume controls
+//     if (lower.includes("volume increase")) {
+//       video.muted = false;
+//       video.volume = Math.min(video.volume + 0.1, 1);
+//     } else if (lower.includes("volume decrease")) {
+//       video.muted = false;
+//       video.volume = Math.max(video.volume - 0.1, 0);
+//     } else if (lower.includes("mute") || lower.includes("mute the video")) {
+//       video.muted = true;
+//     } else if (lower.includes("unmute") || lower.includes("un mute") || lower.includes("un-mute") || lower.includes("unmute the video")) {
+//       video.muted = false;
+//     }
+
+
+
+
+
+//     // ⚡ Speed controls
+//     else if (lower.includes("normal")) {
+//       video.playbackRate = 1;
+//     } else if (lower.includes("slow")) {
+//       video.playbackRate = 0.5;
+//     } else if (lower.includes("slower")) {
+//       video.playbackRate = Math.max(video.playbackRate - 0.25, 0.25);
+//     } else if (lower.includes("faster")) {
+//       video.playbackRate = Math.min(video.playbackRate + 0.25, 3);
+//     } else if (lower.includes("double")) {
+//       video.playbackRate = 2;
+//     } else if (lower.includes("triple")) {
+//       video.playbackRate = 3;
+//     }
+
+//     // ⏩ Navigation
+//     else if (lower.includes("forward 10")) {
+//       video.currentTime = Math.min(video.currentTime + 10, video.duration);
+//     } else if (lower.includes("backward 10")) {
+//       video.currentTime = Math.max(video.currentTime - 10, 0);
+//     }
+
+//     // 🖥 Screen
+//     else if (lower.includes("fullscreen") || lower.includes("full screen") || lower.includes("ful screen")) {
+//       if (video.requestFullscreen) {
+//         video.requestFullscreen();
+//       }
+//     } else if (lower.includes("exit fullscreen")) {
+//       if (document.exitFullscreen) {
+//         document.exitFullscreen();
+//       }
+//     } else if (lower.includes("picture in picture mode")) {
+//       if (video.requestPictureInPicture) {
+//         video.requestPictureInPicture();
+//       }
+//     }
+
+//     // 🎬 Playback
+//     else if (lower.includes("play")) {
+//       video.play();
+//     } else if (lower.includes("pause") || lower.includes("stop")) {
+//       video.pause();
+//     } else if (lower.includes("resume")) {
+//       video.play();
+//     }
+
+
+//     else {
+//       matched = false;
+//       setStatusMessage("⚠️Please speak clearly. Your voice command did not match");
+//       setTimeout(() => setStatusMessage(""), 4000);
+//     }
+//   };
+//   // === Helpers ===
+//   const extractSeconds = (text) => {
+//     const match = text.match(/(\d+)\s*second/);
+//     return match ? parseInt(match[1]) : null;
+//   };
+
+//   const parseSpeedFromText = (t) => {
+//     if (!t) return null;
+//     if (t.includes("normal")) return 1;
+//     if (t.includes("half")) return 0.5;
+//     if (t.includes("quarter")) return 0.25;
+//     if (t.includes("1.5") || t.includes("one point five")) return 1.5;
+//     if (t.includes("double") || t.includes("two")) return 2;
+//     if (t.includes("triple") || t.includes("three")) return 3;
+
+//     if (t.includes("faster")) {
+//       const cur = videoRef.current?.playbackRate ?? 1;
+//       return Math.min(cur + 0.25, 16);
+//     }
+//     if (t.includes("slower")) {
+//       const cur = videoRef.current?.playbackRate ?? 1;
+//       return Math.max(cur - 0.25, 0.25);
+//     }
+
+//     const numeric = t.match(/(\d+(\.\d+)?)/);
+//     if (numeric) {
+//       const n = parseFloat(numeric[0]);
+//       if (!Number.isNaN(n) && n > 0 && n <= 16) return n;
+//     }
+//     return null;
+//   };
+
+
+//   //   const extractSeconds = (text) => {
+//   //     const match = text.match(/(\d+)\s*second/);
+//   //     if (match) return parseInt(match[1]);
+//   //     return null;
+//   //   };
+
+//   // === Voice recognition start/stop ===
+//   const startListening = () => {
+//     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+//     if (!SpeechRecognition) {
+//       setStatusMessage('Speech Recognition not supported in this browser.');
+//       return;
+//     }
+
+//     if (recognitionRef.current) recognitionRef.current.stop();
+
+//     const recognition = new SpeechRecognition();
+//     recognitionRef.current = recognition;
+//     recognition.lang = 'en-US';
+//     recognition.interimResults = false;
+//     recognition.continuous = false;
+
+//     recognition.onstart = () => setListening(true);
+//     recognition.onresult = (event) => {
+//       let final = '';
+//       for (let i = event.resultIndex; i < event.results.length; ++i) {
+//         if (event.results[i].isFinal) final += event.results[i][0].transcript;
+//       }
+//       if (final) handleVoiceCommand(final);
+//     };
+//     recognition.onerror = () => setListening(false);
+//     recognition.onend = () => setListening(false);
+
+//     recognition.start();
+//   };
+
+//   const stopListening = () => {
+//     recognitionRef.current?.stop();
+//     recognitionRef.current = null;
+//     setListening(false);
+//   };
+
+//   // Cleanup recognition
+//   useEffect(() => {
+//     return () => {
+//       if (recognitionRef.current) {
+
+//         recognitionRef.current.stop();
+//         recognitionRef.current = null;
+//       }
+//     };
+//   }, []);
+
+//   const formatDate = (dateString) => {
+//     const options = { year: 'numeric', month: 'long' };
+//     return new Date(dateString).toLocaleDateString(undefined, options);
+//   };
+
+//   if (loading) return <div>Loading...</div>;
+//   if (error) return <div>Error: {error}</div>;
+//   if (!videoData) return <div>No video data</div>;
+//   // useEffect(() => {
+//   //   if (videoRef.current) {
+//   //     videoRef.current.muted = true;  // required for autoplay
+//   //     videoRef.current.play().catch(err => {
+//   //       console.warn("Autoplay blocked:", err);
+//   //     });
+//   //   }
+//   // }, [videoData]);
+
+//   return (
+//     <div className="flex flex-col lg:flex-row gap-6 px-4 lg:px-10 pt-6">
+//       {/* ===== Left Section ===== */}
+//       <div className="lg:w-2/3">
+//         <div className="relative w-full aspect-video bg-black">
+//           <video ref={videoRef} className="w-full h-full" controls autoPlay muted playsInline>
+//             <source src={videoData.videoFile} type="video/mp4" />
+//           </video>
+//         </div>
+
+//         {/* Video Info */}
+//         <h1 className="mt-4 mb-2 text-xl font-semibold">{videoData.title}</h1>
+
+//         {/* Uploader + Actions */}
+//         <div className="border-b border-gray-200 pb-3">
+//           {userData ? (
+//             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+//               <div className="flex items-center gap-3 flex-1">
+//                 <img src={userData.avatar} className="w-12 h-12 rounded-full" alt="User" />
+//                 <div>
+//                   <p className="font-medium">{userData.name}</p>
+//                   <p className="text-sm text-gray-500">Subscribed • 303k</p>
+//                 </div  >
+
+//                 {/* 🎤 Mic Button */}
+
+//                 {/*           
+//                   <button
+//                     onClick={() => (listening ? stopListening() : startListening())}
+//                     className={`ml-auto px-3 py-2 rounded-md text-white ${listening ? 'bg-green-600' : 'bg-blue-600'}`}
+//                   >
+//                     {listening ? '🎤 Listening…' : '🎤 Voice'}
+//                   </button> */}
+
+//                 {/* <div className="relative inline-block  ml-[40%]">
+                
+//                   {statusMessage && ( 
+//                     <div className="absolute -top-12 left-1/2 -translate-x-1/2 
+//                 min-w-[200px] max-w-[300px] px-4 py-2 
+//                 bg-red-600 text-white text-sm rounded-lg 
+//                 shadow-lg text-center animate-fadeInOut">
+//                       {statusMessage}
+//                       <div className="absolute bottom-[-6px] left-1/2 -translate-x-1/2 
+//                   w-0 h-0 border-l-6 border-r-6 border-t-6 
+//                   border-l-transparent border-r-transparent border-t-red-600"></div>
+//                     </div>
+
+//                   )}
+ 
+                
+//                   <button
+//                     onClick={() => (listening ? stopListening() : startListening())}
+//                     className={`ml-auto px-3 py-2 rounded-md text-white ${listening ? 'bg-green-600' : 'bg-blue-600'}`}
+//                   >
+//                     {listening ? '🎤 Listening…' : '🎤 Voice'}
+//                   </button>
+//                </div> */}
+//    <div className="relative inline-block ml-auto lg:ml-8">
+//   {/* Popup over mic */}
+//   {statusMessage && (
+//     <div
+//       className="
+//         absolute -top-12
+//         lg:left-1/2 lg:-translate-x-1/2       /* Desktop: center over mic */
+//         right-0 sm:right-0 sm:-translate-x-full /* Mobile: left of mic */
+//         min-w-[200px] max-w-[300px] px-4 py-2
+//         bg-red-600 text-white text-sm rounded-lg
+//         shadow-lg text-center animate-fadeInOut
+//       "
+//     >
+//       {statusMessage}
+//       <div
+//         className="
+//           absolute bottom-[-6px]
+//           lg:left-1/2 lg:-translate-x-1/2       /* Desktop arrow */
+//           right-0 -translate-x-full               /* Mobile arrow */
+//           w-0 h-0 border-l-6 border-r-6 border-t-6
+//           border-l-transparent border-r-transparent border-t-red-600
+//         "
+//       ></div>
+//     </div>
+//   )}
+
+//   {/* 🎤 Mic Button */}
+//   <button
+//     onClick={() => (listening ? stopListening() : startListening())}
+//     className={`px-3 py-2 rounded-md text-white ${listening ? 'bg-green-600' : 'bg-blue-600'}`}
+//   >
+//     {listening ? '🎤 Listening…' : '🎤 Voice'}
+//   </button>
+// </div>
+
+
+//                 {/* 
+//                 {detected && (
+//                   <div className="relative mt-2 inline-block">
+//                     <p className="px-3 py-2 text-sm text-gray-700 bg-yellow-200 border-2 border-yellow-500 rounded-lg shadow-md italic">
+//                       You said: "{detected}"
+//                     </p>
+                   
+//                     <div className="absolute -bottom-1 left-0 w-full h-2 bg-yellow-500 [clip-path:polygon(0%_0%,5%_100%,10%_0%,15%_100%,20%_0%,25%_100%,30%_0%,35%_100%,40%_0%,45%_100%,50%_0%,55%_100%,60%_0%,65%_100%,70%_0%,75%_100%,80%_0%,85%_100%,90%_0%,95%_100%,100%_0%)]"></div>
+//                   </div>
+//                 )} */}
+
+//                 {/* {statusMessage && (
+//                   <div className="mt-2 px-3 py-2 text-sm bg-red-200 border-2 border-red-500 rounded-lg text-red-800 shadow-md animate-pulse">
+//                     {statusMessage}
+//                   </div>
+//                 )} */}
+
+//               </div>
+
+//               <div className="flex gap-3">
+//                 <button
+//                   onClick={handleLikeVideo}
+//                   className={`px-3 py-2 rounded-md text-white ${videoLiked ? 'bg-green-600' : 'bg-gray-600'}`}
+//                 >
+//                   👍 {videoLikes}
+//                 </button>
+//                 <button className="bg-red-600 text-white px-4 py-1 rounded-md">Subscribe</button>
+//               </div>
+//             </div>
+//           ) : <p>Loading user...</p>}
+//         </div>
+
+//         {/* Views, Date & Desc */}
+//         <div className="bg-gray-100 p-4 rounded-lg mt-3 text-sm">
+//           <div className="flex gap-6 text-gray-700">
+//             <span>👁 {videoData.views} views</span>
+//             <span>📅 {formatDate(videoData.createdAt)}</span>
+//           </div>
+//           <p className="mt-2">
+//             {showFullDesc
+//               ? videoData.description
+//               : videoData.description?.slice(0, 150) + (videoData.description?.length > 150 ? '...' : '')}
+//           </p>
+//           {videoData.description?.length > 150 && (
+//             <button onClick={() => setShowFullDesc(!showFullDesc)} className="text-blue-600 text-sm">
+//               {showFullDesc ? 'See less' : 'See more'}
+//             </button>
+//           )}
+//         </div>
+
+//         {/* ===== Comments Section ===== */}
+//         <div className="mt-6">
+//           <h2 className="font-semibold text-lg mb-3">Comments</h2>
+//           <div className="lg:hidden">
+//             <div
+//               onClick={() => setShowCommentsModal(true)}
+//               className="bg-gray-100 p-3 rounded-lg cursor-pointer"
+//             >
+//               💬 View all {messages.length} comments
+//             </div>
+//           </div>
+
+//           <div className="hidden lg:block">
+//             <div className="flex gap-2 mb-4">
+//               <input
+//                 type="text"
+//                 value={newMessage}
+//                 onChange={(e) => setNewMessage(e.target.value)}
+//                 className="flex-1 border rounded-md px-3 py-2"
+//                 placeholder="Add a comment..."
+//               />
+//               <button
+//                 onClick={handleSendMessage}
+//                 className="bg-blue-600 text-white px-4 py-2 rounded-md"
+//               >
+//                 Send
+//               </button>
+//             </div>
+
+//             <div className="space-y-3">
+//               {messages.map((msg) => (
+//                 <div key={msg._id} className="bg-gray-100 p-3 rounded-lg">
+//                   <div className="flex justify-between items-center">
+//                     <div className="flex items-center gap-2">
+//                       <img src={msg.author?.avatar} alt="" className="w-8 h-8 rounded-full" />
+//                       <span className="font-medium">{msg.author?.name || "Anon"}</span>
+//                     </div>
+//                     <div className="flex gap-4 text-sm">
+//                       <button onClick={() => toggleMessageLike(msg._id)} className="text-blue-600">
+//                         👍 {msg.likes?.length || 0}
+//                       </button>
+//                       <button onClick={() => deleteMessage(msg._id)} className="text-red-600">
+//                         Delete
+//                       </button>
+//                     </div>
+//                   </div>
+//                   <p className="mt-2">{msg.content}</p>
 //                 </div>
 //               ))}
 //             </div>
@@ -1325,20 +1526,884 @@
 
 
 
+//CODE 4
+
+// import React, { useState, useEffect, useRef } from 'react';
+// import axios from 'axios';
+// import { Link, useParams, useNavigate } from 'react-router-dom';
+// // import {dotenv } from 'dotenv';
+
+// function Video() {
+//  const API = import.meta.env.VITE_API_URL || "";
+//   const { id } = useParams();
+//   const navigate = useNavigate();
+
+//   const [videoData, setVideoData] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [userData, setUserData] = useState(null);
+//   const [channelId, setChannelId] = useState(null);
+//   const [error, setError] = useState(null);
+//   const [recommended, setRecommended] = useState([]);
+//   const [showFullDesc, setShowFullDesc] = useState(false);
+//   const [detected, setDetected] = useState('');
+
+
+//   // Likes
+//   const [videoLikes, setVideoLikes] = useState(0);
+//   const [videoLiked, setVideoLiked] = useState(false);
+
+//   // Comments
+//   const [messages, setMessages] = useState([]);
+//   const [newMessage, setNewMessage] = useState('');
+//   const [showCommentsModal, setShowCommentsModal] = useState(false);
+
+//   // Voice state
+//   const [listening, setListening] = useState(false);
+//   const [statusMessage, setStatusMessage] = useState('');
+//   const videoRef = useRef(null);
+//   const recognitionRef = useRef(null);
+
+// //subscribe
+// const [subscribe, setSubscribe] = useState(false);
+// const [count, setCount] = useState(0);
+// const [isToggling, setIsToggling] = useState(false);
+
+
+
+//   // === Fetch video ===
+//   useEffect(() => {
+//     const fetchVideoData = async () => {
+//       try {
+//         const res = await axios.get(`/api/v1/videos/videoData/${id}`, { withCredentials: true });
+//         setVideoData(res.data.data);
+//         setVideoLikes(res.data.data.likes?.length || 0);
+//       } catch (err) {
+//         setError(err.message || 'Error fetching video');
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+//     fetchVideoData();
+//   }, [id]);
+
+//   // === Increment view + add to history ===
+//   useEffect(() => {
+//     axios.put(`/api/v1/videos/incrementView/${id}`).catch(console.error);
+//     axios.put(`/api/v1/account/addToHistory/${id}`).catch(console.error);
+//   }, [id]);
+
+
+// /// to make vidioe auto play after click on any recommended vidioe
+//    useEffect(() => {
+//   if (!videoData?.videoFile || !videoRef.current) return;
+//   const v = videoRef.current;
+//   try { v.pause(); } catch (e) {}
+//   if (v.src !== videoData.videoFile) {
+//     v.src = videoData.videoFile;
+//   }
+//   try {
+//     v.load();
+//     v.play().catch(() => {});
+//   } catch (e) {}
+// }, [videoData]);
+
+
+
+
+//   // === Fetch uploader data ===
+//   useEffect(() => {
+//     if (videoData?.owner) {
+//       axios.get(`/api/v1/account/userData/${videoData.owner}`)
+//         .then(res => {
+//           console.log("the value is ",res);
+//           // setUserId(res.data.data._id);
+//           setUserData(res.data.data)
+//              setChannelId(res.data.data._id || videoData.owner);
+//         })  
+//         .catch(console.error);
+//     }
+//   }, [videoData]);
+
+//   // === Fetch comments ===
+//   useEffect(() => {
+//     axios
+//       .get(`/api/v1/messages/video/${id}`, { withCredentials: true })
+//       .then(res => setMessages(res.data.messages || []))
+//       .catch(console.error);
+//   }, [id]);
+
+//   // === Fetch all videos for Recommended ===
+//   useEffect(() => {
+//     axios
+//       .get("/api/v1/videos/allVideo")
+//       .then(res => setRecommended(res.data.data || []))
+//       .catch(console.error);
+//   }, []);
+
+//   // === Like video ===
+//   const handleLikeVideo = async () => {
+//     try {
+//       await axios.put(`/api/v1/videos/${id}/like`, {}, { withCredentials: true });
+//       setVideoLiked(!videoLiked);
+//       setVideoLikes(prev => (videoLiked ? prev - 1 : prev + 1));
+//     } catch (err) {
+//       if (err.response?.status === 401) navigate('/login');
+//     }
+//   };
+
+ 
+ 
+
+// // use channelId to fetch count & status
+// useEffect(() => {
+//   if (!channelId) return;
+
+//   axios.get(`/api/v1/subs/${channelId}/count`)
+//     .then(res => setCount(res.data.count || 0))
+//     .catch(err => console.error("count error:", err.response?.data || err.message));
+
+//   axios.get(`/api/v1/subs/${channelId}/status`, { withCredentials: true })
+//     .then(res => setSubscribe(!!res.data.subscribed))
+//     .catch(err => {
+//       if (err.response?.status === 401) setSubscribe(false);
+//       else console.error("status error:", err.response?.data || err.message);
+//     });
+// }, [channelId]);
+
+// // subscribe handler uses the channelId state
+// const handleSubscribe = async () => {
+//   if (!channelId) {
+//     console.warn("No channelId available for subscribe");
+//     return;
+//   }
+//   if (isToggling) return;
+
+//   const prevSubscribed = subscribe;
+//   const prevCount = count;
+//   const newSubscribed = !prevSubscribed;
+
+//   setIsToggling(true);
+//   setSubscribe(newSubscribed);
+//   setCount(prev => Math.max(0, prev + (newSubscribed ? 1 : -1)));
+
+//   try {
+//     const res = await axios.post(`/api/v1/subs/${channelId}/subscribe`, {}, { withCredentials: true });
+//     console.log("subscribe response:", res.data);
+//     if (res.data?.subscribed !== undefined) setSubscribe(!!res.data.subscribed);
+//     if (typeof res.data?.count === 'number') setCount(res.data.count);
+//   } catch (err) {
+//     setSubscribe(prevSubscribed);
+//     setCount(prevCount);
+//     console.error("subscribe error:", err.response?.data || err.message);
+//     if (err.response?.status === 401) navigate('/login');
+//   } finally {
+//     setIsToggling(false);
+//   }
+// };
+
+//   // === Post comment ===
+//  const handleSendMessage = async (overrideText = null) => {
+//   const messageText = overrideText !== null ? overrideText : newMessage;
+//   if (!messageText.trim()) return;
+
+//   try {
+//     console.log("Sending message:", { videoId: id, content: messageText });
+
+//     const res = await axios.post(
+//       `/api/v1/messages`,
+//       { videoId: id, content: messageText },
+//       { withCredentials: true }
+//     );
+
+//     setMessages(prev => [res.data, ...prev]); 
+//     setNewMessage('');
+//        setShowCommentsModal(true);
+//   } catch (err) {
+//     if (err.response?.status === 401) navigate('/login');
+//   }
+// };
+
+
+//   // === Like comment ===
+//   const toggleMessageLike = async (msgId) => {
+//     try {
+//       const res = await axios.post(`/api/v1/messages/${msgId}/like`, {}, { withCredentials: true });
+//       setMessages(prev => 
+//         prev.map(m => m._id === msgId ? { ...m, likes: res.data.likes } : m)
+//       );
+    
+//     } catch (err) {
+//       if (err.response?.status === 401) navigate('/login');
+//     }
+//   };
+
+//   // === Delete comment ===
+//   const deleteMessage = async (msgId) => {
+//     try {
+//       await axios.delete(`/api/v1/messages/${msgId}`, { withCredentials: true });
+//       setMessages(prev => prev.filter(m => m._id !== msgId));
+//     } catch (err) {
+//       console.error(err);
+//     }
+//   };
+
+//   // === Voice Command Parser ===
+//   //   const handleVoiceCommand = async (text) => {
+//   //     if (!videoRef.current) return;
+//   //     const t = text.toLowerCase();
+
+//   //     if (t.includes("pause")) return videoRef.current.pause();
+//   //     if (t.includes("play") || t.includes("resume")) return videoRef.current.play();
+
+//   //     if (t.includes("forward")) {
+//   //       const seconds = extractSeconds(t) || 10;
+//   //       videoRef.current.currentTime = Math.min(videoRef.current.duration, videoRef.current.currentTime + seconds);
+//   //       return;
+//   //     }
+//   //     if (t.includes("back") || t.includes("rewind")) {
+//   //       const seconds = extractSeconds(t) || 10;
+//   //       videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - seconds);
+//   //       return;
+//   //     }
+
+//   //     const speed = parseSpeedFromText(t);
+//   //     if (speed !== null) {
+//   //       videoRef.current.playbackRate = speed;
+//   //       return;
+//   //     }
+
+//   //     if (t.includes("volume up") || t.includes("increase volume")) {
+//   //       videoRef.current.volume = Math.min(1, videoRef.current.volume + 0.3);
+//   //       return;
+//   //     }
+//   //     if (t.includes("volume down") || t.includes("decrease volume")) {
+//   //       videoRef.current.volume = Math.max(0, videoRef.current.volume - 0.3);
+//   //       return;
+//   //     }
+//   //     if (t.includes("mute")) {
+//   //       videoRef.current.muted = true;
+//   //       return;
+//   //     }
+//   //     if (t.includes("unmute")) {
+//   //       videoRef.current.muted = false;
+//   //       return;
+//   //     }
+
+//   //     if (t.includes("fullscreen")) {
+//   //       if (videoRef.current.requestFullscreen) videoRef.current.requestFullscreen();
+//   //       return;
+//   //     }
+//   //     if (t.includes("exit fullscreen") || t.includes("normal screen")) {
+//   //       if (document.exitFullscreen) document.exitFullscreen();
+//   //       return;
+//   //     }
+
+//   //     if (t.includes("picture in picture") || t.includes("pip")) {
+//   //       try {
+//   //         if (document.pictureInPictureElement) {
+//   //           await document.exitPictureInPicture();
+//   //         } else {
+//   //           await videoRef.current.requestPictureInPicture();
+//   //         }
+//   //       } catch (err) {
+//   //         console.error("PIP error:", err);
+//   //       }
+//   //       return;
+//   //     }
+
+//   //     if (t.includes("download")) {
+//   //       const a = document.createElement("a");
+//   //       a.href = videoData.videoFile;
+//   //       a.download = `${videoData.title || "video"}.mp4`;
+//   //       document.body.appendChild(a);
+//   //       a.click();
+//   //       document.body.removeChild(a);
+//   //       return;
+//   //     }
+//   //   };
+
+//   //   const parseSpeedFromText = (t) => {
+//   //     if (!t) return null;
+//   //     if (t.includes('normal')) return 1;
+//   //     if (t.includes('half')) return 0.5;
+//   //     if (t.includes('quarter')) return 0.25;
+//   //     if (t.includes('1.5') || t.includes('one point five')) return 1.5;
+//   //     if (t.includes('double') || t.includes('two')) return 2;
+//   //     if (t.includes('triple') || t.includes('three')) return 3;
+
+//   //     if (t.includes('faster') || t.includes('increase')) {
+//   //       const cur = videoRef.current?.playbackRate ?? 1;
+//   //       return Math.min(cur + 0.25, 16);
+//   //     }
+//   //     if (t.includes('slower') || t.includes('decrease')) {
+//   //       const cur = videoRef.current?.playbackRate ?? 1;
+//   //       return Math.max(cur - 0.25, 0.25);
+//   //     }
+
+//   //     const numeric = t.match(/(\d+(\.\d+)?)/);
+//   //     if (numeric) {
+//   //       const n = parseFloat(numeric[0]);
+//   //       if (!Number.isNaN(n) && n > 0 && n <= 16) return n;
+//   //     }
+//   //     return null;
+//   //   };
+//   // === Voice Command Parser ===
+  
+
+
+
+//   const handleVoiceCommand = (command) => {
+//    const video = videoRef.current;
+
+//     if (!video) return;
+
+//     const lower = command.toLowerCase();
+//     console.log("The detected voice is : ", lower)
+//     console.log("exact word is  : ", lower.includes)
+//     setDetected(lower);
+
+// //applying video play functionality
+// const idx = parseIndexFromText(lower, recommended.length);
+// if (idx !== null) {
+//   if (!recommended || recommended.length === 0) {
+//     setStatusMessage("No recommendations available");
+//     setTimeout(() => setStatusMessage(""), 2500);
+//     return;
+//   }
+//   const target = recommended[idx];
+//   if (!target) {
+//     setStatusMessage("Index out of range");
+//     setTimeout(() => setStatusMessage(""), 2500);
+//     return;
+//   }
+//   try { recognitionRef.current?.stop(); } catch (e) {}  
+//   recognitionRef.current = null;
+//   setListening(false);
+ 
+//   setStatusMessage(`Opening "${target.title}"`);
+//   navigate(`/watch/${target._id}`);
+ 
+//   return;
+// }
+
+
+
+
+
+//     let matched = true; // ✅ Track if any command matched
+
+//     // Auto clear after 5 seconds
+//     setTimeout(() => setDetected(''), 5000);
+//     // 🔊 Volume controls
+//     // 🔊 Volume controls
+//     if (lower.includes("volume increase")) {
+//       video.muted = false;
+//       video.volume = Math.min(video.volume + 0.1, 1);
+//     } else if (lower.includes("volume decrease")) {
+//       video.muted = false;
+//       video.volume = Math.max(video.volume - 0.1, 0);
+//     } else if (lower.includes("mute") || lower.includes("mute the video")) {
+//       video.muted = true;
+//     } else if (lower.includes("unmute") || lower.includes("un mute") || lower.includes("un-mute") || lower.includes("unmute the video")) {
+//       video.muted = false;
+//     }
+
+
+
+
+
+//     // ⚡ Speed controls
+//     else if (lower.includes("normal")) {
+//       video.playbackRate = 1;
+//     } else if (lower.includes("slow")) {
+//       video.playbackRate = 0.5;
+//     } else if (lower.includes("slower")) {
+//       video.playbackRate = Math.max(video.playbackRate - 0.25, 0.25);
+//     } else if (lower.includes("faster")) {
+//       video.playbackRate = Math.min(video.playbackRate + 0.25, 3);
+//     } else if (lower.includes("double")) {
+//       video.playbackRate = 2;
+//     } else if (lower.includes("triple")) {
+//       video.playbackRate = 3;
+//     }
+
+//     // ⏩ Navigation
+//     else if (lower.includes("forward 10")) {
+//       video.currentTime = Math.min(video.currentTime + 10, video.duration);
+//     } else if (lower.includes("backward 10")) {
+//       video.currentTime = Math.max(video.currentTime - 10, 0);
+//     }
+
+//     // 🖥 Screen
+//     else if (lower.includes("fullscreen") || lower.includes("full screen") || lower.includes("ful screen")) {
+//       if (video.requestFullscreen) {
+//         video.requestFullscreen();
+//       }
+//     } else if (lower.includes("exit fullscreen")) {
+//       if (document.exitFullscreen) {
+//         document.exitFullscreen();
+//       }
+//     } else if (lower.includes("picture in picture mode")) {
+//       if (video.requestPictureInPicture) {
+//         video.requestPictureInPicture();
+//       }
+//     }
+
+//     // 🎬 Playback
+//     else if (lower.includes("play")) {
+//       video.play();
+//     } else if (lower.includes("pause") || lower.includes("stop")) {
+//       video.pause();
+//     } else if (lower.includes("resume")) {
+//       video.play();
+//     }
+
+//     //create a message
+//    else  if (lower.includes("create message")) {
+//   setStatusMessage("🎤 Speak your message (10s)...");
+//   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+//   if (!SpeechRecognition) {
+//     setStatusMessage("Speech Recognition not supported in this browser.");
+//     return;
+//   }
+
+//   const recognition = new SpeechRecognition();
+//   recognition.lang = "en-US";
+//   recognition.interimResults = false;
+//   recognition.continuous = false;
+
+// recognition.onresult = async (event) => {
+//   let spokenText = "";
+//   for (let i = event.resultIndex; i < event.results.length; ++i) {
+//     if (event.results[i].isFinal) {
+//       spokenText += event.results[i][0].transcript;
+//     }
+//   }
+
+//   if (spokenText.trim()) {
+//     await handleSendMessage(spokenText); // ✅ now works
+//     setStatusMessage("✅ Message sent!");
+//     setTimeout(() => setStatusMessage(""), 4000);
+//   }
+// };
+
+
+//   recognition.onend = () => setStatusMessage("");
+//   recognition.start();
+
+//   // stop after 10 seconds
+//   setTimeout(() => recognition.stop(), 10000);
+//   return;
+// }
+
+// //open or close message UI
+// else if (lower.includes("open message") || lower.includes("show message") || lower.includes("open comments")) {
+//   setShowCommentsModal(true);
+//   setStatusMessage("💬 Comments opened");
+//   return;
+// }
+
+// else if (lower.includes("close message") || lower.includes("hide message") || lower.includes("close comments")) {
+//   setShowCommentsModal(false);
+//   setStatusMessage("❌ Comments closed");
+//   return;
+// }
+// else if (lower.includes("toggle subscribe")) {
+//      handleSubscribe();
+//     }
+
+
+
+//     else {
+//       matched = false;
+//       setStatusMessage("⚠️Please speak clearly. Your voice command did not match");
+//       setTimeout(() => setStatusMessage(""), 4000);
+//     }
+//   };
+//   // === Helpers ===
+//   const extractSeconds = (text) => {
+//     const match = text.match(/(\d+)\s*second/);
+//     return match ? parseInt(match[1]) : null;
+//   };
+
+//  const wordToNumber = (w) => {
+//   const map = { zero:0, one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9, ten:10, first:1, second:2, third:3, fourth:4, fifth:5 };
+//   return map[w] ?? null;
+// };
+
+
+// const parseIndexFromText = (text, max) => {
+//   if (!text) return null;
+//   const digitMatch = text.match(/\b(\d+)(st|nd|rd|th)?\b/);
+//   if (digitMatch) {
+//     const n = Number(digitMatch[1]);
+//     if (n >= 1 && n <= max) return n - 1;
+//   }
+//   const wordMatch = text.match(/\b(zero|one|two|three|four|five|six|seven|eight|nine|ten|first|second|third|fourth|fifth)\b/);
+//   if (wordMatch) {
+//     const n = wordToNumber(wordMatch[1]);
+//     if (n !== null && n >= 0 && n < max) return n === 0 ? 0 : n - 1;
+//   }
+//   return null;
+// };
+
+
+//   //   const extractSeconds = (text) => {
+//   //     const match = text.match(/(\d+)\s*second/);
+//   //     if (match) return parseInt(match[1]);
+//   //     return null;
+//   //   };
+
+//   // === Voice recognition start/stop ===
+//   const startListening = () => {
+//     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+//     if (!SpeechRecognition) {
+//       setStatusMessage('Speech Recognition not supported in this browser.');
+//       return;
+//     }
+
+//     if (recognitionRef.current) recognitionRef.current.stop();
+
+//     const recognition = new SpeechRecognition();
+//     recognitionRef.current = recognition;
+//     recognition.lang = 'en-US';
+//     recognition.interimResults = false;
+//     recognition.continuous = false;
+
+//     recognition.onstart = () => setListening(true);
+//     recognition.onresult = (event) => {
+//       let final = '';
+//       for (let i = event.resultIndex; i < event.results.length; ++i) {
+//         if (event.results[i].isFinal) final += event.results[i][0].transcript;
+//       }
+//       if (final) handleVoiceCommand(final);
+//     };
+//     recognition.onerror = () => setListening(false);
+//     recognition.onend = () => setListening(false);
+
+//     recognition.start();
+//   };
+
+//   const stopListening = () => {
+//     recognitionRef.current?.stop();
+//     recognitionRef.current = null;
+//     setListening(false);
+//   };
+
+//   // Cleanup recognition
+//   useEffect(() => {
+//     return () => {
+//       if (recognitionRef.current) {
+
+//         recognitionRef.current.stop();
+//         recognitionRef.current = null;
+//       }
+//     };
+//   }, []);
+
+//   const formatDate = (dateString) => {
+//     const options = { year: 'numeric', month: 'long' };
+//     return new Date(dateString).toLocaleDateString(undefined, options);
+//   };
+
+//   if (loading) return <div>Loading...</div>;
+//   if (error) return <div>Error: {error}</div>;
+//   if (!videoData) return <div>No video data</div>;
+//   // useEffect(() => {
+//   //   if (videoRef.current) {
+//   //     videoRef.current.muted = true;  // required for autoplay
+//   //     videoRef.current.play().catch(err => {
+//   //       console.warn("Autoplay blocked:", err);
+//   //     });
+//   //   }
+//   // }, [videoData]);
+
+ 
+
+//   return (
+//     <div className="flex flex-col lg:flex-row gap-6 px-4 lg:px-10 pt-6">
+//       {/* ===== Left Section ===== */}
+//       <div className="lg:w-2/3">
+//         <div className="relative w-full aspect-video bg-black">
+//           <video ref={videoRef} className="w-full h-full" controls autoPlay muted playsInline>
+//             <source src={videoData.videoFile} type="video/mp4" />
+//           </video>
+//         </div>
+
+//         {/* Video Info */}
+//         <h1 className="mt-4 mb-2 text-xl font-semibold">{videoData.title}</h1>
+
+//         {/* Uploader + Actions */}
+//         <div className="border-b border-gray-200 pb-3">
+//           {userData ? (
+//             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+//               <div className="flex items-center gap-3 flex-1">
+//                 <img src={userData.avatar} className="w-12 h-12 rounded-full" alt="User" />
+//                 <div>
+//                   <p className="font-medium">{userData.name}</p>
+//                   <p className="text-sm text-gray-500"> {count} Subscribers</p>
+//                 </div  >
+
+//                 {/* 🎤 Mic Button */}
+
+//                 {/*           
+//                   <button
+//                     onClick={() => (listening ? stopListening() : startListening())}
+//                     className={`ml-auto px-3 py-2 rounded-md text-white ${listening ? 'bg-green-600' : 'bg-blue-600'}`}
+//                   >
+//                     {listening ? '🎤 Listening…' : '🎤 Voice'}
+//                   </button> */}
+
+//                 {/* <div className="relative inline-block  ml-[40%]">
+                
+//                   {statusMessage && ( 
+//                     <div className="absolute -top-12 left-1/2 -translate-x-1/2 
+//                 min-w-[200px] max-w-[300px] px-4 py-2 
+//                 bg-red-600 text-white text-sm rounded-lg 
+//                 shadow-lg text-center animate-fadeInOut">
+//                       {statusMessage}
+//                       <div className="absolute bottom-[-6px] left-1/2 -translate-x-1/2 
+//                   w-0 h-0 border-l-6 border-r-6 border-t-6 
+//                   border-l-transparent border-r-transparent border-t-red-600"></div>
+//                     </div>
+
+//                   )}
+ 
+                
+//                   <button
+//                     onClick={() => (listening ? stopListening() : startListening())}
+//                     className={`ml-auto px-3 py-2 rounded-md text-white ${listening ? 'bg-green-600' : 'bg-blue-600'}`}
+//                   >
+//                     {listening ? '🎤 Listening…' : '🎤 Voice'}
+//                   </button>
+//                </div> */}
+//    <div className="relative inline-block ml-auto lg:ml-8">
+//   {/* Popup over mic */}
+//   {statusMessage && (
+//     <div
+//       className="
+//         absolute -top-12
+//         lg:left-1/2 lg:-translate-x-1/2       /* Desktop: center over mic */
+//         right-0 sm:right-0 sm:-translate-x-full /* Mobile: left of mic */
+//         min-w-[200px] max-w-[300px] px-4 py-2
+//         bg-red-600 text-white text-sm rounded-lg
+//         shadow-lg text-center animate-fadeInOut
+//       "
+//     >
+//       {statusMessage}
+//       <div
+//         className="
+//           absolute bottom-[-6px]
+//           lg:left-1/2 lg:-translate-x-1/2       /* Desktop arrow */
+//           right-0 -translate-x-full               /* Mobile arrow */
+//           w-0 h-0 border-l-6 border-r-6 border-t-6
+//           border-l-transparent border-r-transparent border-t-red-600
+//         "
+//       ></div>
+//     </div>
+//   )}
+
+//   {/* 🎤 Mic Button */}
+//   <button
+//     onClick={() => (listening ? stopListening() : startListening())}
+//     className={`px-3 py-2 rounded-md text-white ${listening ? 'bg-green-600' : 'bg-blue-600'}`}
+//   >
+//     {listening ? '🎤 Listening…' : '🎤 Voice'}
+//   </button>
+// </div>
+
+
+//                 {/* 
+//                 {detected && (
+//                   <div className="relative mt-2 inline-block">
+//                     <p className="px-3 py-2 text-sm text-gray-700 bg-yellow-200 border-2 border-yellow-500 rounded-lg shadow-md italic">
+//                       You said: "{detected}"
+//                     </p>
+                   
+//                     <div className="absolute -bottom-1 left-0 w-full h-2 bg-yellow-500 [clip-path:polygon(0%_0%,5%_100%,10%_0%,15%_100%,20%_0%,25%_100%,30%_0%,35%_100%,40%_0%,45%_100%,50%_0%,55%_100%,60%_0%,65%_100%,70%_0%,75%_100%,80%_0%,85%_100%,90%_0%,95%_100%,100%_0%)]"></div>
+//                   </div>
+//                 )} */}
+
+//                 {/* {statusMessage && (
+//                   <div className="mt-2 px-3 py-2 text-sm bg-red-200 border-2 border-red-500 rounded-lg text-red-800 shadow-md animate-pulse">
+//                     {statusMessage}
+//                   </div>
+//                 )} */}
+
+//               </div>
+
+//               <div className="flex gap-3">
+//                 <button
+//                   onClick={handleLikeVideo}
+//                   className={`px-3 py-2 rounded-md text-white ${videoLiked ? 'bg-green-600' : 'bg-gray-600'}`}
+//                 >
+//                   👍 {videoLikes}
+//                 </button>
+//                 <button onClick={handleSubscribe } className="bg-red-600 text-white px-4 py-1 rounded-md">{subscribe?"Subscribed":"Subscribe"}</button>
+//               </div>
+//             </div>
+//           ) : <p>Loading user...</p>}
+//         </div>
+
+//         {/* Views, Date & Desc */}
+//         <div className="bg-gray-100 p-4 rounded-lg mt-3 text-sm">
+//           <div className="flex gap-6 text-gray-700">
+//             <span>👁 {videoData.views} views</span>
+//             <span>📅 {formatDate(videoData.createdAt)}</span>
+//           </div>
+//           <p className="mt-2">
+//             {showFullDesc
+//               ? videoData.description
+//               : videoData.description?.slice(0, 150) + (videoData.description?.length > 150 ? '...' : '')}
+//           </p>
+//           {videoData.description?.length > 150 && (
+//             <button onClick={() => setShowFullDesc(!showFullDesc)} className="text-blue-600 text-sm">
+//               {showFullDesc ? 'See less' : 'See more'}
+//             </button>
+//           )}
+//         </div>
+
+//         {/* ===== Comments Section ===== */}
+//         <div className="mt-6">
+//           <h2 className="font-semibold text-lg mb-3">Comments</h2>
+//           <div className="lg:hidden">
+//             <div
+//               onClick={() => setShowCommentsModal(true)}
+//               className="bg-gray-100 p-3 rounded-lg cursor-pointer"
+//             >
+//               💬 View all {messages.length} comments
+//             </div>
+//           </div>
+
+//           <div className="hidden lg:block">
+//             <div className="flex gap-2 mb-4">
+//               <input
+//                 type="text"
+//                 value={newMessage}
+//                 onChange={(e) => setNewMessage(e.target.value)}
+//                 className="flex-1 border rounded-md px-3 py-2"
+//                 placeholder="Add a comment..."
+//               />
+//               <button
+//                 onClick={handleSendMessage}
+//                 className="bg-blue-600 text-white px-4 py-2 rounded-md"
+//               >
+//                 Send
+//               </button>
+//             </div>
+
+//             <div className="space-y-3">
+//               {messages.map((msg) => (
+//                 <div key={msg._id} className="bg-gray-100 p-3 rounded-lg">
+//                   <div className="flex justify-between items-center">
+//                     <div className="flex items-center gap-2">
+//                       <img src={msg.author?.avatar} alt="" className="w-8 h-8 rounded-full" />
+//                       <span className="font-medium">{msg.author?.name || "Anon"}</span>
+//                     </div>
+//                     <div className="flex gap-4 text-sm">
+//                       <button onClick={() => toggleMessageLike(msg._id)} className="text-blue-600">
+//                         👍 {msg.likes?.length || 0}
+//                       </button>
+//                       <button onClick={() => deleteMessage(msg._id)} className="text-red-600">
+//                         Delete
+//                       </button>
+//                     </div>
+//                   </div>
+//                   <p className="mt-2">{msg.content}</p>
+//                 </div>
+//               ))}
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* ===== Right Section ===== */}
+//       <div className="lg:w-1/3 space-y-4">
+//         <h2 className="font-semibold text-lg">Recommended</h2>
+//         {recommended.length > 0 ? (
+//           recommended.map(vid => (
+//             <Link key={vid._id} to={`/watch/${vid._id}`} className="flex gap-3 hover:bg-gray-100 p-2 rounded-lg">
+//               <img src={vid.thumbnail} className="w-40 h-24 object-cover rounded-lg" alt={vid.title} />
+              
+//               <div>
+//                 <h3 className="text-sm font-medium">{vid.title}</h3>
+//                 <p className="text-xs text-gray-600">{vid.owner?.name || 'Unknown'}</p>
+//                 <p className="text-xs text-gray-500">{vid.views} views</p>
+//               </div>
+//             </Link>
+//           ))
+//         ) : <p>No recommended videos</p>}
+//       </div>
+
+//       {/* ===== Mobile Comments Modal ===== */}
+//       {showCommentsModal && (
+//         <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-end">
+//           <div className="bg-white w-full h-2/3 rounded-t-2xl p-4 overflow-y-auto">
+//             <div className="flex justify-between items-center mb-4">
+//               <h3 className="font-semibold">Comments</h3>
+//               <button onClick={() => setShowCommentsModal(false)}>✖</button>
+//             </div>
+
+//             <div className="flex gap-2 mb-4">
+//               <input
+//                 type="text"
+//                 value={newMessage}
+//                 onChange={(e) => setNewMessage(e.target.value)}
+//                 className="flex-1 border rounded-md px-3 py-2"
+//                 placeholder="Add a comment..."
+//               />
+//               <button onClick={handleSendMessage} className="bg-blue-600 text-white px-4 py-2 rounded-md">
+//                 Send
+//               </button>
+//             </div>
+
+//             <div className="space-y-3">
+//               {messages.map(msg => (
+//                 <div key={msg._id} className="bg-gray-100 p-3 rounded-lg">
+//                   <p className="font-medium">{msg.user?.name || 'Anon'}</p>
+//                   <p>{msg.content}</p>
+//                   <div className="flex gap-4 text-sm mt-1">
+//                     <button onClick={() => toggleMessageLike(msg._id)} className="text-blue-600">
+//                       👍 {msg.likes?.length || 0}
+//                     </button>
+//                     <button onClick={() => deleteMessage(msg._id)} className="text-red-600">
+//                       Delete
+//                     </button>
+//                   </div>
+//                 </div>
+//               ))}
+//             </div>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+// export default Video;
+
+
+
+//code 5
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Link, useParams, useNavigate } from 'react-router-dom';
+// import {dotenv } from 'dotenv';
 
 function Video() {
+ const API = import.meta.env.VITE_API_URL || "";
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [videoData, setVideoData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
+  const [channelId, setChannelId] = useState(null);
   const [error, setError] = useState(null);
   const [recommended, setRecommended] = useState([]);
   const [showFullDesc, setShowFullDesc] = useState(false);
+  const [detected, setDetected] = useState('');
+
 
   // Likes
   const [videoLikes, setVideoLikes] = useState(0);
@@ -1351,7 +2416,17 @@ function Video() {
 
   // Voice state
   const [listening, setListening] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
   const videoRef = useRef(null);
+  const recognitionRef = useRef(null);
+
+//subscribe
+const [subscribe, setSubscribe] = useState(false);
+const [count, setCount] = useState(0);
+const [isToggling, setIsToggling] = useState(false);
+
+//rerender 
+const [render,setRender]=useState(true);  
 
   // === Fetch video ===
   useEffect(() => {
@@ -1375,11 +2450,36 @@ function Video() {
     axios.put(`/api/v1/account/addToHistory/${id}`).catch(console.error);
   }, [id]);
 
+
+/// to make vidioe auto play after click on any recommended vidioe
+   useEffect(() => {
+  if (!videoData?.videoFile || !videoRef.current) return;
+  const v = videoRef.current;
+  try { v.pause(); } catch (e) {}
+  if (v.src !== videoData.videoFile) {
+    v.src = videoData.videoFile;
+  }
+  try {
+    v.load();
+    v.play().catch(() => {});
+  } catch (e) {}
+
+  setRender(!render)
+}, [videoData]);
+
+
+
+
   // === Fetch uploader data ===
   useEffect(() => {
     if (videoData?.owner) {
       axios.get(`/api/v1/account/userData/${videoData.owner}`)
-        .then(res => setUserData(res.data.data))
+        .then(res => {
+          console.log("the value is ",res);
+          // setUserId(res.data.data._id);
+          setUserData(res.data.data)
+             setChannelId(res.data.data._id || videoData.owner);
+        })  
         .catch(console.error);
     }
   }, [videoData]);
@@ -1411,25 +2511,87 @@ function Video() {
     }
   };
 
+ 
+ 
+
+// use channelId to fetch count & status
+useEffect(() => {
+  if (!channelId) return;
+
+  axios.get(`/api/v1/subs/${channelId}/count`)
+    .then(res => setCount(res.data.count || 0))
+    .catch(err => console.error("count error:", err.response?.data || err.message));
+
+  axios.get(`/api/v1/subs/${channelId}/status`, { withCredentials: true })
+    .then(res => setSubscribe(!!res.data.subscribed))
+    .catch(err => {
+      if (err.response?.status === 401) setSubscribe(false);
+      else console.error("status error:", err.response?.data || err.message);
+    });
+}, [channelId]);
+
+// subscribe handler uses the channelId state
+const handleSubscribe = async () => {
+  if (!channelId) {
+    console.warn("No channelId available for subscribe");
+    return;
+  }
+  if (isToggling) return;
+
+  const prevSubscribed = subscribe;
+  const prevCount = count;
+  const newSubscribed = !prevSubscribed;
+
+  setIsToggling(true);
+  setSubscribe(newSubscribed);
+  setCount(prev => Math.max(0, prev + (newSubscribed ? 1 : -1)));
+
+  try {
+    const res = await axios.post(`/api/v1/subs/${channelId}/subscribe`, {}, { withCredentials: true });
+    console.log("subscribe response:", res.data);
+    if (res.data?.subscribed !== undefined) setSubscribe(!!res.data.subscribed);
+    if (typeof res.data?.count === 'number') setCount(res.data.count);
+  } catch (err) {
+    setSubscribe(prevSubscribed);
+    setCount(prevCount);
+    console.error("subscribe error:", err.response?.data || err.message);
+    if (err.response?.status === 401) navigate('/login');
+  } finally {
+    setIsToggling(false);
+  }
+};
+
   // === Post comment ===
-  const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
-    try {
-      const res = await axios.post(`/api/v1/messages`, { videoId: id, content: newMessage }, { withCredentials: true });
-      setMessages(prev => [res.data, ...prev]);
-      setNewMessage('');
-    } catch (err) {
-      if (err.response?.status === 401) navigate('/login');
-    }
-  };
+ const handleSendMessage = async (overrideText = null) => {
+  const messageText = overrideText !== null ? overrideText : newMessage;
+  if (!messageText.trim()) return;
+
+  try {
+    console.log("Sending message:", { videoId: id, content: messageText });
+
+    const res = await axios.post(
+      `/api/v1/messages`,
+      { videoId: id, content: messageText },
+      { withCredentials: true }
+    );
+
+    setMessages(prev => [res.data, ...prev]); 
+    setNewMessage('');
+       setShowCommentsModal(true);
+  } catch (err) {
+    if (err.response?.status === 401) navigate('/login');
+  }
+};
+
 
   // === Like comment ===
   const toggleMessageLike = async (msgId) => {
     try {
       const res = await axios.post(`/api/v1/messages/${msgId}/like`, {}, { withCredentials: true });
-      setMessages(prev =>
+      setMessages(prev => 
         prev.map(m => m._id === msgId ? { ...m, likes: res.data.likes } : m)
       );
+    
     } catch (err) {
       if (err.response?.status === 401) navigate('/login');
     }
@@ -1445,6 +2607,355 @@ function Video() {
     }
   };
 
+  // === Voice Command Parser ===
+  //   const handleVoiceCommand = async (text) => {
+  //     if (!videoRef.current) return;
+  //     const t = text.toLowerCase();
+
+  //     if (t.includes("pause")) return videoRef.current.pause();
+  //     if (t.includes("play") || t.includes("resume")) return videoRef.current.play();
+
+  //     if (t.includes("forward")) {
+  //       const seconds = extractSeconds(t) || 10;
+  //       videoRef.current.currentTime = Math.min(videoRef.current.duration, videoRef.current.currentTime + seconds);
+  //       return;
+  //     }
+  //     if (t.includes("back") || t.includes("rewind")) {
+  //       const seconds = extractSeconds(t) || 10;
+  //       videoRef.current.currentTime = Math.max(0, videoRef.current.currentTime - seconds);
+  //       return;
+  //     }
+
+  //     const speed = parseSpeedFromText(t);
+  //     if (speed !== null) {
+  //       videoRef.current.playbackRate = speed;
+  //       return;
+  //     }
+
+  //     if (t.includes("volume up") || t.includes("increase volume")) {
+  //       videoRef.current.volume = Math.min(1, videoRef.current.volume + 0.3);
+  //       return;
+  //     }
+  //     if (t.includes("volume down") || t.includes("decrease volume")) {
+  //       videoRef.current.volume = Math.max(0, videoRef.current.volume - 0.3);
+  //       return;
+  //     }
+  //     if (t.includes("mute")) {
+  //       videoRef.current.muted = true;
+  //       return;
+  //     }
+  //     if (t.includes("unmute")) {
+  //       videoRef.current.muted = false;
+  //       return;
+  //     }
+
+  //     if (t.includes("fullscreen")) {
+  //       if (videoRef.current.requestFullscreen) videoRef.current.requestFullscreen();
+  //       return;
+  //     }
+  //     if (t.includes("exit fullscreen") || t.includes("normal screen")) {
+  //       if (document.exitFullscreen) document.exitFullscreen();
+  //       return;
+  //     }
+
+  //     if (t.includes("picture in picture") || t.includes("pip")) {
+  //       try {
+  //         if (document.pictureInPictureElement) {
+  //           await document.exitPictureInPicture();
+  //         } else {
+  //           await videoRef.current.requestPictureInPicture();
+  //         }
+  //       } catch (err) {
+  //         console.error("PIP error:", err);
+  //       }
+  //       return;
+  //     }
+
+  //     if (t.includes("download")) {
+  //       const a = document.createElement("a");
+  //       a.href = videoData.videoFile;
+  //       a.download = `${videoData.title || "video"}.mp4`;
+  //       document.body.appendChild(a);
+  //       a.click();
+  //       document.body.removeChild(a);
+  //       return;
+  //     }
+  //   };
+
+  //   const parseSpeedFromText = (t) => {
+  //     if (!t) return null;
+  //     if (t.includes('normal')) return 1;
+  //     if (t.includes('half')) return 0.5;
+  //     if (t.includes('quarter')) return 0.25;
+  //     if (t.includes('1.5') || t.includes('one point five')) return 1.5;
+  //     if (t.includes('double') || t.includes('two')) return 2;
+  //     if (t.includes('triple') || t.includes('three')) return 3;
+
+  //     if (t.includes('faster') || t.includes('increase')) {
+  //       const cur = videoRef.current?.playbackRate ?? 1;
+  //       return Math.min(cur + 0.25, 16);
+  //     }
+  //     if (t.includes('slower') || t.includes('decrease')) {
+  //       const cur = videoRef.current?.playbackRate ?? 1;
+  //       return Math.max(cur - 0.25, 0.25);
+  //     }
+
+  //     const numeric = t.match(/(\d+(\.\d+)?)/);
+  //     if (numeric) {
+  //       const n = parseFloat(numeric[0]);
+  //       if (!Number.isNaN(n) && n > 0 && n <= 16) return n;
+  //     }
+  //     return null;
+  //   };
+  // === Voice Command Parser ===
+  
+
+
+
+  const handleVoiceCommand = (command) => {
+   const video = videoRef.current;
+
+    if (!video) return;
+
+    const lower = command.toLowerCase();
+    console.log("The detected voice is : ", lower)
+    console.log("exact word is  : ", lower.includes)
+    setDetected(lower);
+
+//applying video play functionality
+const idx = parseIndexFromText(lower, recommended.length);
+if (idx !== null) {
+  if (!recommended || recommended.length === 0) {
+    setStatusMessage("No recommendations available");
+    setTimeout(() => setStatusMessage(""), 2500);
+    return;
+  }
+  const target = recommended[idx];
+  if (!target) {
+    setStatusMessage("Index out of range");
+    setTimeout(() => setStatusMessage(""), 2500);
+    return;
+  }
+  try { recognitionRef.current?.stop(); } catch (e) {}  
+  recognitionRef.current = null;
+  setListening(false);
+ 
+  setStatusMessage(`Opening "${target.title}"`);
+  navigate(`/watch/${target._id}`);
+ 
+  return;
+}
+
+
+
+
+
+    let matched = true; // ✅ Track if any command matched
+
+    // Auto clear after 5 seconds
+    setTimeout(() => setDetected(''), 5000);
+    // 🔊 Volume controls
+    // 🔊 Volume controls
+    if (lower.includes("volume increase")) {
+      video.muted = false;
+      video.volume = Math.min(video.volume + 0.1, 1);
+    } else if (lower.includes("volume decrease")) {
+      video.muted = false;
+      video.volume = Math.max(video.volume - 0.1, 0);
+    } else if (lower.includes("mute") || lower.includes("mute the video")) {
+      video.muted = true;
+    } else if (lower.includes("unmute") || lower.includes("un mute") || lower.includes("un-mute") || lower.includes("unmute the video")) {
+      video.muted = false;
+    }
+
+
+
+
+
+    // ⚡ Speed controls
+    else if (lower.includes("normal")) {
+      video.playbackRate = 1;
+    } else if (lower.includes("slow")) {
+      video.playbackRate = 0.5;
+    } else if (lower.includes("slower")) {
+      video.playbackRate = Math.max(video.playbackRate - 0.25, 0.25);
+    } else if (lower.includes("faster")) {
+      video.playbackRate = Math.min(video.playbackRate + 0.25, 3);
+    } else if (lower.includes("double")) {
+      video.playbackRate = 2;
+    } else if (lower.includes("triple")) {
+      video.playbackRate = 3;
+    }
+
+    // ⏩ Navigation
+    else if (lower.includes("forward 10")) {
+      video.currentTime = Math.min(video.currentTime + 10, video.duration);
+    } else if (lower.includes("backward 10")) {
+      video.currentTime = Math.max(video.currentTime - 10, 0);
+    }
+
+    // 🖥 Screen
+    else if (lower.includes("fullscreen") || lower.includes("full screen") || lower.includes("ful screen")) {
+      if (video.requestFullscreen) {
+        video.requestFullscreen();
+      }
+    } else if (lower.includes("exit fullscreen")) {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    } else if (lower.includes("picture in picture mode")) {
+      if (video.requestPictureInPicture) {
+        video.requestPictureInPicture();
+      }
+    }
+
+    // 🎬 Playback
+    else if (lower.includes("play")) {
+      video.play();
+    } else if (lower.includes("pause") || lower.includes("stop")) {
+      video.pause();
+    } else if (lower.includes("resume")) {
+      video.play();
+    }
+
+    //create a message
+   else  if (lower.includes("create message")) {
+  setStatusMessage("🎤 Speak your message (10s)...");
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    setStatusMessage("Speech Recognition not supported in this browser.");
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+  recognition.continuous = false;
+
+recognition.onresult = async (event) => {
+  let spokenText = "";
+  for (let i = event.resultIndex; i < event.results.length; ++i) {
+    if (event.results[i].isFinal) {
+      spokenText += event.results[i][0].transcript;
+    }
+  }
+
+  if (spokenText.trim()) {
+    await handleSendMessage(spokenText); // ✅ now works
+    setStatusMessage("✅ Message sent!");
+    setTimeout(() => setStatusMessage(""), 4000);
+  }
+};
+
+
+  recognition.onend = () => setStatusMessage("");
+  recognition.start();
+
+  // stop after 10 seconds
+  setTimeout(() => recognition.stop(), 10000);
+  return;
+}
+
+//open or close message UI
+else if (lower.includes("open message") || lower.includes("show message") || lower.includes("open comments")) {
+  setShowCommentsModal(true);
+  setStatusMessage("💬 Comments opened");
+  return;
+}
+
+else if (lower.includes("close message") || lower.includes("hide message") || lower.includes("close comments")) {
+  setShowCommentsModal(false);
+  setStatusMessage("❌ Comments closed");
+  return;
+}
+else if (lower.includes("toggle subscribe")) {
+     handleSubscribe();
+    }
+
+
+
+    else {
+      matched = false;
+      setStatusMessage("⚠️Please speak clearly. Your voice command did not match");
+      setTimeout(() => setStatusMessage(""), 4000);
+    }
+  };
+  // === Helpers ===
+  const extractSeconds = (text) => {
+    const match = text.match(/(\d+)\s*second/);
+    return match ? parseInt(match[1]) : null;
+  };
+
+ const wordToNumber = (w) => {
+  const map = { zero:0, one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9, ten:10, first:1, second:2, third:3, fourth:4, fifth:5 };
+  return map[w] ?? null;
+};
+
+
+const parseIndexFromText = (text, max) => {
+  if (!text) return null;
+  const digitMatch = text.match(/\b(\d+)(st|nd|rd|th)?\b/);
+  if (digitMatch) {
+    const n = Number(digitMatch[1]);
+    if (n >= 1 && n <= max) return n - 1;
+  }
+  const wordMatch = text.match(/\b(zero|one|two|three|four|five|six|seven|eight|nine|ten|first|second|third|fourth|fifth)\b/);
+  if (wordMatch) {
+    const n = wordToNumber(wordMatch[1]);
+    if (n !== null && n >= 0 && n < max) return n === 0 ? 0 : n - 1;
+  }
+  return null;
+};
+
+
+ 
+  // === Voice recognition start/stop ===
+  const startListening = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setStatusMessage('Speech Recognition not supported in this browser.');
+      return;
+    }
+
+    if (recognitionRef.current) recognitionRef.current.stop();
+
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.continuous = false;
+
+    recognition.onstart = () => setListening(true);
+    recognition.onresult = (event) => {
+      let final = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) final += event.results[i][0].transcript;
+      }
+      if (final) handleVoiceCommand(final);
+    };
+    recognition.onerror = () => setListening(false);
+    recognition.onend = () => setListening(false);
+
+    recognition.start();
+  };
+
+  const stopListening = () => {
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    setListening(false);
+  };
+
+  // Cleanup recognition
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+
+        recognitionRef.current.stop();
+        recognitionRef.current = null;
+      }
+    };
+  }, []);
+
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long' };
     return new Date(dateString).toLocaleDateString(undefined, options);
@@ -1453,13 +2964,23 @@ function Video() {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!videoData) return <div>No video data</div>;
+  // useEffect(() => {
+  //   if (videoRef.current) {
+  //     videoRef.current.muted = true;  // required for autoplay
+  //     videoRef.current.play().catch(err => {
+  //       console.warn("Autoplay blocked:", err);
+  //     });
+  //   }
+  // }, [videoData]);
+
+ 
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 px-4 lg:px-10 pt-6">
       {/* ===== Left Section ===== */}
       <div className="lg:w-2/3">
         <div className="relative w-full aspect-video bg-black">
-          <video ref={videoRef} className="w-full h-full" controls>
+          <video ref={videoRef} className="w-full h-full" controls autoPlay muted playsInline>
             <source src={videoData.videoFile} type="video/mp4" />
           </video>
         </div>
@@ -1471,24 +2992,101 @@ function Video() {
         <div className="border-b border-gray-200 pb-3">
           {userData ? (
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              {/* Row 1: uploader + mic */}
               <div className="flex items-center gap-3 flex-1">
                 <img src={userData.avatar} className="w-12 h-12 rounded-full" alt="User" />
                 <div>
                   <p className="font-medium">{userData.name}</p>
-                  <p className="text-sm text-gray-500">Subscribed • 303k</p>
-                </div>
+                  <p className="text-sm text-gray-500"> {count} Subscribers</p>
+                </div  >
 
-                {/* 🎤 Mic always last in row */}
-                <button
-                  onClick={() => setListening(!listening)}
-                  className={`ml-auto px-3 py-2 rounded-md text-white ${listening ? 'bg-green-600' : 'bg-blue-600'}`}
-                >
-                  🎤
-                </button>
+                {/* 🎤 Mic Button */}
+
+                {/*           
+                  <button
+                    onClick={() => (listening ? stopListening() : startListening())}
+                    className={`ml-auto px-3 py-2 rounded-md text-white ${listening ? 'bg-green-600' : 'bg-blue-600'}`}
+                  >
+                    {listening ? '🎤 Listening…' : '🎤 Voice'}
+                  </button> */}
+
+                {/* <div className="relative inline-block  ml-[40%]">
+                
+                  {statusMessage && ( 
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 
+                min-w-[200px] max-w-[300px] px-4 py-2 
+                bg-red-600 text-white text-sm rounded-lg 
+                shadow-lg text-center animate-fadeInOut">
+                      {statusMessage}
+                      <div className="absolute bottom-[-6px] left-1/2 -translate-x-1/2 
+                  w-0 h-0 border-l-6 border-r-6 border-t-6 
+                  border-l-transparent border-r-transparent border-t-red-600"></div>
+                    </div>
+
+                  )}
+ 
+                
+                  <button
+                    onClick={() => (listening ? stopListening() : startListening())}
+                    className={`ml-auto px-3 py-2 rounded-md text-white ${listening ? 'bg-green-600' : 'bg-blue-600'}`}
+                  >
+                    {listening ? '🎤 Listening…' : '🎤 Voice'}
+                  </button>
+               </div> */}
+   <div className="relative inline-block ml-auto lg:ml-8">
+  {/* Popup over mic */}
+  {statusMessage && (
+    <div
+      className="
+        absolute -top-12
+        lg:left-1/2 lg:-translate-x-1/2       /* Desktop: center over mic */
+        right-0 sm:right-0 sm:-translate-x-full /* Mobile: left of mic */
+        min-w-[200px] max-w-[300px] px-4 py-2
+        bg-red-600 text-white text-sm rounded-lg
+        shadow-lg text-center animate-fadeInOut
+      "
+    >
+      {statusMessage}
+      <div
+        className="
+          absolute bottom-[-6px]
+          lg:left-1/2 lg:-translate-x-1/2       /* Desktop arrow */
+          right-0 -translate-x-full               /* Mobile arrow */
+          w-0 h-0 border-l-6 border-r-6 border-t-6
+          border-l-transparent border-r-transparent border-t-red-600
+        "
+      ></div>
+    </div>
+  )}
+
+  {/* 🎤 Mic Button */}
+  <button
+    onClick={() => (listening ? stopListening() : startListening())}
+    className={`px-3 py-2 rounded-md text-white ${listening ? 'bg-green-600' : 'bg-blue-600'}`}
+  >
+    {listening ? '🎤 Listening…' : '🎤 Voice'}
+  </button>
+</div>
+
+
+                {/* 
+                {detected && (
+                  <div className="relative mt-2 inline-block">
+                    <p className="px-3 py-2 text-sm text-gray-700 bg-yellow-200 border-2 border-yellow-500 rounded-lg shadow-md italic">
+                      You said: "{detected}"
+                    </p>
+                   
+                    <div className="absolute -bottom-1 left-0 w-full h-2 bg-yellow-500 [clip-path:polygon(0%_0%,5%_100%,10%_0%,15%_100%,20%_0%,25%_100%,30%_0%,35%_100%,40%_0%,45%_100%,50%_0%,55%_100%,60%_0%,65%_100%,70%_0%,75%_100%,80%_0%,85%_100%,90%_0%,95%_100%,100%_0%)]"></div>
+                  </div>
+                )} */}
+
+                {/* {statusMessage && (
+                  <div className="mt-2 px-3 py-2 text-sm bg-red-200 border-2 border-red-500 rounded-lg text-red-800 shadow-md animate-pulse">
+                    {statusMessage}
+                  </div>
+                )} */}
+
               </div>
 
-              {/* Row 2 (on mobile) or right side (desktop): Like + Subscribe */}
               <div className="flex gap-3">
                 <button
                   onClick={handleLikeVideo}
@@ -1496,7 +3094,7 @@ function Video() {
                 >
                   👍 {videoLikes}
                 </button>
-                <button className="bg-red-600 text-white px-4 py-1 rounded-md">Subscribe</button>
+                <button onClick={handleSubscribe } className="bg-red-600 text-white px-4 py-1 rounded-md">{subscribe?"Subscribed":"Subscribe"}</button>
               </div>
             </div>
           ) : <p>Loading user...</p>}
@@ -1523,8 +3121,6 @@ function Video() {
         {/* ===== Comments Section ===== */}
         <div className="mt-6">
           <h2 className="font-semibold text-lg mb-3">Comments</h2>
-
-          {/* Mobile view → show "View comments" box */}
           <div className="lg:hidden">
             <div
               onClick={() => setShowCommentsModal(true)}
@@ -1534,7 +3130,6 @@ function Video() {
             </div>
           </div>
 
-          {/* Desktop comments */}
           <div className="hidden lg:block">
             <div className="flex gap-2 mb-4">
               <input
@@ -1552,53 +3147,27 @@ function Video() {
               </button>
             </div>
 
-            {/* <div className="space-y-3">
+            <div className="space-y-3">
               {messages.map((msg) => (
                 <div key={msg._id} className="bg-gray-100 p-3 rounded-lg">
-                 {/* <p className="font-medium">{msg.author?.name || 'Anon'}</p> */}
- 
-                  {/* <p>{msg.content}</p>
-                  <div className="flex gap-4 text-sm mt-1">
-                    <button onClick={() => toggleMessageLike(msg._id)} className="text-blue-600">
-                      👍 {msg.likes?.length || 0}
-                    </button>
-                    <button onClick={() => deleteMessage(msg._id)} className="text-red-600">
-                      Delete
-                    </button>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <img src={msg.author?.avatar} alt="" className="w-8 h-8 rounded-full" />
+                      <span className="font-medium">{msg.author?.name || "Anon"}</span>
+                    </div>
+                    <div className="flex gap-4 text-sm">
+                      <button onClick={() => toggleMessageLike(msg._id)} className="text-blue-600">
+                        👍 {msg.likes?.length || 0}
+                      </button>
+                      <button onClick={() => deleteMessage(msg._id)} className="text-red-600">
+                        Delete
+                      </button>
+                    </div>
                   </div>
+                  <p className="mt-2">{msg.content}</p>
                 </div>
               ))}
-            </div> */} 
-
-
-
-            <div className="space-y-3">
-  {messages.map((msg) => (
-    <div key={msg._id} className="bg-gray-100 p-3 rounded-lg">
-      <div className="flex justify-between items-center">
-        {/* Left: author */}
-        <div className="flex items-center gap-2">
-          <img src={msg.author?.avatar} alt="" className="w-8 h-8 rounded-full" />
-          <span className="font-medium">{msg.author?.name || "Anon"}</span>
-        </div>
-
-        {/* Right: actions */}
-        <div className="flex gap-4 text-sm">
-          <button onClick={() => toggleMessageLike(msg._id)} className="text-blue-600">
-            👍 {msg.likes?.length || 0}
-          </button>
-          <button onClick={() => deleteMessage(msg._id)} className="text-red-600">
-            Delete
-          </button>
-        </div>
-      </div>
-
-      {/* Message text */}
-      <p className="mt-2">{msg.content}</p>
-    </div>
-  ))}
-</div>
-
+            </div>
           </div>
         </div>
       </div>
@@ -1606,18 +3175,38 @@ function Video() {
       {/* ===== Right Section ===== */}
       <div className="lg:w-1/3 space-y-4">
         <h2 className="font-semibold text-lg">Recommended</h2>
-        {recommended.length > 0 ? (
-          recommended.map(vid => (
-            <Link key={vid._id} to={`/watch/${vid._id}`} className="flex gap-3 hover:bg-gray-100 p-2 rounded-lg">
-              <img src={vid.thumbnail} className="w-40 h-24 object-cover rounded-lg" alt={vid.title} />
-              <div>
-                <h3 className="text-sm font-medium">{vid.title}</h3>
-                <p className="text-xs text-gray-600">{vid.owner?.name || 'Unknown'}</p>
-                <p className="text-xs text-gray-500">{vid.views} views</p>
-              </div>
-            </Link>
-          ))
-        ) : <p>No recommended videos</p>}
+      {recommended.length > 0 ? (
+  recommended.map((vid, idx) => (
+    <Link
+      key={vid._id}
+      to={`/watch/${vid._id}`}
+      className="flex gap-3 hover:bg-gray-100 p-2 rounded-lg items-center"
+    >
+      <div className="relative w-40 h-24 flex-shrink-0">
+        <img
+          src={vid.thumbnail}
+          className="w-full h-full object-cover rounded-lg"
+          alt={vid.title}
+        />
+        <div
+          className={`absolute -left-3 top-1/2 transform -translate-y-1/2
+            w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shadow-md border
+            ${id === vid._id ? 'bg-red-600 text-white border-red-700' : 'bg-white text-gray-800 border-gray-200'}`}
+          style={{ zIndex: 5 }}
+        >
+          {idx + 1}
+        </div>
+      </div>
+
+      <div className="flex-1">
+        <h3 className="text-sm font-medium">{vid.title}</h3>
+        <p className="text-xs text-gray-600">{vid.owner?.name || 'Unknown'}</p>
+        <p className="text-xs text-gray-500">{vid.views} views</p>
+      </div>
+    </Link>
+  ))
+) : <p>No recommended videos</p>}
+
       </div>
 
       {/* ===== Mobile Comments Modal ===== */}
@@ -1666,3 +3255,4 @@ function Video() {
 }
 
 export default Video;
+

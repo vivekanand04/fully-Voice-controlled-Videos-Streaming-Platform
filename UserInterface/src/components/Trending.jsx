@@ -92,8 +92,9 @@ const timeAgo = (date) => {
   return "Just now";
 };
 
-function SearchResults() {
-  const { query } = useParams();
+function Trending() {
+//   const { query } = useParams();
+const query="robot";
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -189,4 +190,4 @@ function SearchResults() {
   );
 }
 
-export default SearchResults;
+export default Trending;

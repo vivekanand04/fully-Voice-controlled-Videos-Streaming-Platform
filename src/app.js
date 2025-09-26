@@ -16,6 +16,8 @@ app.use(cors({
   credentials: true
 }));
 
+console.log("the valur of mogodb uri is",process.env.MONGODB_URI);
+
 
 // app.use(bodyParser.json())
 app.use(express.json({limit: "700mb"}))
@@ -52,6 +54,10 @@ import videoRouter from "./routes/video.routes.js"
 
 import messageRouter from "./routes/message.routes.js";
 import likeRouter from "./routes/like.routes.js";
+import subscribeRouter from "./routes/subscribe.route.js";
+app.use("/api/v1/subs", subscribeRouter);
+
+
 
 app.use("/api/v1/messages", messageRouter);
 app.use("/api/v1/likes", likeRouter);
@@ -60,6 +66,7 @@ app.use("/api/v1/likes", likeRouter);
 
 app.use("/api/v1/account", userAccount)
 app.use("/api/v1/videos", videoRouter)
+
 
 // app.use("/api/v1/healthcheck", healthcheckRouter)
 // app.use("/api/v1/users", userRouter)

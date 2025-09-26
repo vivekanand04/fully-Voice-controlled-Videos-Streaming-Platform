@@ -202,3 +202,47 @@ export const toggleLikeVideo = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
+
+
+
+export const listLikedVideos = async (req, res) => {
+  try {
+    const queryingUserId = req.user._id;
+    const userId = req.query.userId || queryingUserId; // allow admin use-case
+    const page = Math.max(1, parseInt(req.query.page || "1", 10));
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit || "10", 10)));
+    const skip = (page - 1) * limit;
+
+    // Fetch likes, populate target (Video) and its owner
+    const likes = await Like.find({ likedBy: userId, targetType: "Video" })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: "target",
+        model: "Video",
+        populate: { path: "owner", model: "newUser", select: "name _id avatar" }
+      })
+      .lean();
+
+    // Filter out likes whose target video was deleted (target may be null)
+    const likedVideos = likes
+      .filter(l => l.target) // remove null targets
+      .map(l => ({
+        likedAt: l.createdAt,
+        video: l.target
+      }));
+
+    const total = await Like.countDocuments({ likedBy: userId, targetType: "Video" });
+
+    return res.json({
+      total,
+      page,
+      limit,
+      videos: likedVideos
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};

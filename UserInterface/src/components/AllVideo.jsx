@@ -11,12 +11,14 @@ function AllVideo() {
   const [loader, setLoader] = useState(false)
 
   useEffect(() => {
+    console.log("the userdata are",userdata)
       if (!userdata || !userdata._id) return; // ✅ Skip if user data isn't ready
     const fetchVideos = async () => {
       try {
         setLoader(true)
         const response = await axios.get(`/api/v1/videos/allUserVideo/${userdata._id}`);
-        setVideos(response.data.data);
+        console.log("the response value are",response);
+        setVideos(response.data?.data || []);
         setLoader(false)
       } catch (error) {
         console.error('Error fetching videos:', error);
@@ -25,7 +27,7 @@ function AllVideo() {
     };
 
     fetchVideos();
-  }, [userdata._id]);
+  }, [userdata]);
 
   const handleDelete = async (videoId) => {
     if (confirm('Are you sure you want to delete this video?')) {
@@ -41,7 +43,7 @@ function AllVideo() {
       }
     }
   };
-
+  // console.log(`video length are: ${videos.length}`);
   return (
     loader ?  
     <div className="text-center  my-44 ">
@@ -61,7 +63,9 @@ function AllVideo() {
         <section>
           <div className="container">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {videos.map((video) => (
+            
+              {videos.length > 0 ?
+              (videos.map((video) => (
                 <div key={video._id}>
                   <div className="relative">
                     <Link to={`/watch/${video._id}`}>
@@ -93,7 +97,8 @@ function AllVideo() {
                     </div>
                   </div>
                 </div>
-              ))}
+              ))): (
+  <p>No videos found</p>)}
             </div>
           </div>
         </section>

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import React, { useState } from 'react';
 
 function UploadVideo() {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(true);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [thumbnail, setThumbnail] = useState(null);
@@ -11,7 +11,7 @@ function UploadVideo() {
     const [loader, setLoader] = useState(false)
 
     const handleToggleModal = () => {
-        setIsModalOpen(!isModalOpen);
+        setIsModalOpen(!isModalOpen);   
     };
 
     const history = useNavigate()
@@ -157,3 +157,5 @@ function UploadVideo() {
 }
 
 export default UploadVideo;
+
+
