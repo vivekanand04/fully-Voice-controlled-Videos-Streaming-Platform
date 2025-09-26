@@ -4,15 +4,12 @@
   "description": "",
   "type": "module",
   "main": "index.js",
-
   "scripts": {
-  "start": "node ./src/index.js",
-
-  "frontend": "cd UserInterface && npm run dev",
-  "backend": "nodemon src/index.js",
-  "dev": "concurrently \"npm run frontend\" \"npm run backend\""
-},
-
+    "start": "cross-env DOTENV_CONFIG_PATH=backend/.env node -r dotenv/config ./backend/index.js",
+    "frontend": "cd UserInterface && npm run dev",
+    "backend": "cross-env DOTENV_CONFIG_PATH=backend/.env nodemon -r dotenv/config backend/index.js",
+    "dev": "concurrently \"npm run frontend\" \"npm run backend\""
+  },
   "keywords": [
     "javascript",
     "backend"
@@ -20,6 +17,7 @@
   "author": "varshit",
   "license": "ISC",
   "devDependencies": {
+    "cross-env": "^10.0.0",
     "nodemon": "^3.1.0"
   },
   "dependencies": {
@@ -29,7 +27,7 @@
     "concurrently": "^8.2.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.6.1",
     "express": "^4.19.2",
     "ffprobe": "^1.1.2",
     "fluent-ffmpeg": "^2.1.3",
